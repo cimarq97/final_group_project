@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFinder - Find Your Perfect Watch</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="container">
+            <h1>🎬 StreamFinder</h1>
+            <p class="tagline">Find what to watch based on your mood</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Multi-Step Form -->
+        <section id="selector-section" class="card">
+            <h2>Let's Find Your Perfect Match</h2>
+            
+            <!-- Step 1: Mood -->
+            <div class="form-step active" data-step="1">
+                <h3>What's your mood?</h3>
+                <div class="options-grid">
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="happy" required>
+                        <span class="option-content">
+                            <span class="emoji">😊</span>
+                            <span class="label">Happy</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="sad">
+                        <span class="option-content">
+                            <span class="emoji">😢</span>
+                            <span class="label">Sad</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="excited">
+                        <span class="option-content">
+                            <span class="emoji">🤩</span>
+                            <span class="label">Excited</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="relaxed">
+                        <span class="option-content">
+                            <span class="emoji">😌</span>
+                            <span class="label">Relaxed</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="adventurous">
+                        <span class="option-content">
+                            <span class="emoji">🚀</span>
+                            <span class="label">Adventurous</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="mood" value="thoughtful">
+                        <span class="option-content">
+                            <span class="emoji">🤔</span>
+                            <span class="label">Thoughtful</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 2: Time Available -->
+            <div class="form-step" data-step="2">
+                <h3>How much time do you have?</h3>
+                <div class="options-grid">
+                    <label class="option-card">
+                        <input type="radio" name="time" value="short" required>
+                        <span class="option-content">
+                            <span class="emoji">⏱️</span>
+                            <span class="label">30-60 min</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="time" value="medium">
+                        <span class="option-content">
+                            <span class="emoji">⏰</span>
+                            <span class="label">1-2 hours</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="time" value="long">
+                        <span class="option-content">
+                            <span class="emoji">🕐</span>
+                            <span class="label">2+ hours</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="time" value="binge">
+                        <span class="option-content">
+                            <span class="emoji">📺</span>
+                            <span class="label">Binge-worthy</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 3: Genre -->
+            <div class="form-step" data-step="3">
+                <h3>Pick your genre</h3>
+                <div class="options-grid">
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="comedy" required>
+                        <span class="option-content">
+                            <span class="emoji">😂</span>
+                            <span class="label">Comedy</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="drama">
+                        <span class="option-content">
+                            <span class="emoji">🎭</span>
+                            <span class="label">Drama</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="action">
+                        <span class="option-content">
+                            <span class="emoji">💥</span>
+                            <span class="label">Action</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="thriller">
+                        <span class="option-content">
+                            <span class="emoji">🔪</span>
+                            <span class="label">Thriller</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="scifi">
+                        <span class="option-content">
+                            <span class="emoji">🛸</span>
+                            <span class="label">Sci-Fi</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="genre" value="documentary">
+                        <span class="option-content">
+                            <span class="emoji">🎥</span>
+                            <span class="label">Documentary</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 4: Streaming Services -->
+            <div class="form-step" data-step="4">
+                <h3>Select your streaming services</h3>
+                <p class="helper-text">Choose all that apply</p>
+                <div class="options-grid checkboxes">
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="netflix">
+                        <span class="option-content">
+                            <span class="service-name">Netflix</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="hulu">
+                        <span class="option-content">
+                            <span class="service-name">Hulu</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="disney">
+                        <span class="option-content">
+                            <span class="service-name">Disney+</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="prime">
+                        <span class="option-content">
+                            <span class="service-name">Prime Video</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="hbo">
+                        <span class="option-content">
+                            <span class="service-name">HBO Max</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="checkbox" name="services" value="apple">
+                        <span class="option-content">
+                            <span class="service-name">Apple TV+</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="button-group">
+                <button type="button" id="prev-btn" class="btn btn-secondary" style="display: none;">Previous</button>
+                <button type="button" id="next-btn" class="btn btn-primary">Next</button>
+                <button type="button" id="find-btn" class="btn btn-primary" style="display: none;">Find Recommendations</button>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" style="display: none;">
+            <div class="results-header">
+                <h2>Your Recommendations</h2>
+                <button id="reset-btn" class="btn btn-secondary">Start Over</button>
+            </div>
+            <div id="results-container" class="results-grid"></div>
+            <div id="no-results" class="no-results" style="display: none;">
+                <p>😔 No matches found. Try adjusting your preferences!</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 StreamFinder. Find your perfect watch.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
