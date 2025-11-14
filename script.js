@@ -1,484 +1,371 @@
-// ===== SAMPLE DATA =====
-// This is the placeholder dataset with 15 movie/show entries
-const mediaDatabase = [
-    {
-        id: 1,
-        title: "The Grand Budapest Hotel",
-        type: "Movie",
-        genre: "comedy",
-        mood: ["happy", "relaxed"],
-        time: "medium",
-        duration: "100 min",
-        services: ["netflix", "hulu"],
-        description: "A whimsical comedy about a legendary concierge and his protégé at a famous European hotel."
-    },
-    {
-        id: 2,
-        title: "Breaking Bad",
-        type: "Series",
-        genre: "drama",
-        mood: ["excited", "thoughtful"],
-        time: "binge",
-        duration: "5 Seasons",
-        services: ["netflix"],
-        description: "A high school chemistry teacher turned meth manufacturer navigates the dangerous criminal underworld."
-    },
-    {
-        id: 3,
-        title: "The Office",
-        type: "Series",
-        genre: "comedy",
-        mood: ["happy", "relaxed"],
-        time: "short",
-        duration: "22 min episodes",
-        services: ["prime", "hulu"],
-        description: "A mockumentary following the everyday lives of office employees at Dunder Mifflin Paper Company."
-    },
-    {
-        id: 4,
-        title: "Inception",
-        type: "Movie",
-        genre: "scifi",
-        mood: ["excited", "thoughtful"],
-        time: "medium",
-        duration: "148 min",
-        services: ["hbo", "prime"],
-        description: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea."
-    },
-    {
-        id: 5,
-        title: "Planet Earth II",
-        type: "Documentary",
-        genre: "documentary",
-        mood: ["relaxed", "thoughtful"],
-        time: "short",
-        duration: "50 min episodes",
-        services: ["netflix", "disney"],
-        description: "Stunning nature documentary showcasing the beauty and diversity of life on Earth."
-    },
-    {
-        id: 6,
-        title: "Gone Girl",
-        type: "Movie",
-        genre: "thriller",
-        mood: ["excited", "thoughtful"],
-        time: "medium",
-        duration: "149 min",
-        services: ["hulu", "prime"],
-        description: "A husband becomes the prime suspect in his wife's mysterious disappearance."
-    },
-    {
-        id: 7,
-        title: "Ted Lasso",
-        type: "Series",
-        genre: "comedy",
-        mood: ["happy", "relaxed"],
-        time: "short",
-        duration: "30 min episodes",
-        services: ["apple"],
-        description: "An American football coach is hired to manage a British soccer team despite having no experience."
-    },
-    {
-        id: 8,
-        title: "Mad Max: Fury Road",
-        type: "Movie",
-        genre: "action",
-        mood: ["excited", "adventurous"],
-        time: "medium",
-        duration: "120 min",
-        services: ["hbo", "netflix"],
-        description: "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search of her homeland."
-    },
-    {
-        id: 9,
-        title: "The Crown",
-        type: "Series",
-        genre: "drama",
-        mood: ["thoughtful", "relaxed"],
-        time: "binge",
-        duration: "6 Seasons",
-        services: ["netflix"],
-        description: "A dramatized chronicle of the reign of Queen Elizabeth II and the political events that shaped the modern world."
-    },
-    {
-        id: 10,
-        title: "Parasite",
-        type: "Movie",
-        genre: "thriller",
-        mood: ["excited", "thoughtful"],
-        time: "medium",
-        duration: "132 min",
-        services: ["hulu", "hbo"],
-        description: "A poor family schemes to become employed by a wealthy family and infiltrate their household."
-    },
-    {
-        id: 11,
-        title: "Stranger Things",
-        type: "Series",
-        genre: "scifi",
-        mood: ["excited", "adventurous"],
-        time: "binge",
-        duration: "4 Seasons",
-        services: ["netflix"],
-        description: "A group of kids uncover supernatural mysteries in their small Indiana town in the 1980s."
-    },
-    {
-        id: 12,
-        title: "Amelie",
-        type: "Movie",
-        genre: "comedy",
-        mood: ["happy", "relaxed"],
-        time: "medium",
-        duration: "122 min",
-        services: ["prime", "hulu"],
-        description: "A shy waitress decides to change the lives of those around her for the better while dealing with her own isolation."
-    },
-    {
-        id: 13,
-        title: "Our Planet",
-        type: "Documentary",
-        genre: "documentary",
-        mood: ["thoughtful", "relaxed"],
-        time: "short",
-        duration: "50 min episodes",
-        services: ["netflix"],
-        description: "Explores the natural wonders of our planet and the impact of climate change on all living creatures."
-    },
-    {
-        id: 14,
-        title: "The Mandalorian",
-        type: "Series",
-        genre: "action",
-        mood: ["adventurous", "excited"],
-        time: "short",
-        duration: "40 min episodes",
-        services: ["disney"],
-        description: "A lone bounty hunter travels the outer reaches of the galaxy, far from the authority of the New Republic."
-    },
-    {
-        id: 15,
-        title: "Knives Out",
-        type: "Movie",
-        genre: "thriller",
-        mood: ["excited", "thoughtful"],
-        time: "medium",
-        duration: "130 min",
-        services: ["prime", "netflix"],
-        description: "A detective investigates the death of a patriarch of an eccentric, combative family."
-    }
-];
+// ========================================
+// TMDb API Configuration
+// ========================================
+// IMPORTANT: Replace with your actual TMDb API key
+const TMDB_API_KEY = "YOUR_TMDB_API_KEY_HERE";
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// ===== STATE MANAGEMENT =====
-let currentStep = 1;
-const totalSteps = 4;
-const userSelections = {
-    mood: null,
-    time: null,
-    genre: null,
-    services: []
+// ========================================
+// Mood Configuration
+// ========================================
+// Maps user moods to genre preferences and sort orders
+const MOOD_CONFIG = {
+    cozy: {
+        genres: [35, 10749], // Comedy, Romance
+        sort: "popularity.desc"
+    },
+    excited: {
+        genres: [28, 53, 878], // Action, Thriller, Sci-Fi
+        sort: "popularity.desc"
+    },
+    sad: {
+        genres: [18, 10749], // Drama, Romance
+        sort: "vote_average.desc",
+        minVotes: 100
+    },
+    tired: {
+        genres: [35], // Comedy
+        sort: "popularity.desc",
+        minVotes: 50
+    },
+    curious: {
+        genres: [99, 9648, 18], // Documentary, Mystery, Drama
+        sort: "vote_average.desc",
+        minVotes: 50
+    }
 };
 
-// ===== DOM ELEMENTS =====
-const formSteps = document.querySelectorAll('.form-step');
-const progressDots = document.querySelectorAll('.progress-dot');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const findBtn = document.getElementById('find-btn');
-const resetBtn = document.getElementById('reset-btn');
-const selectorSection = document.getElementById('selector-section');
-const resultsSection = document.getElementById('results-section');
-const resultsContainer = document.getElementById('results-container');
-const noResultsDiv = document.getElementById('no-results');
+// ========================================
+// Runtime Configuration
+// ========================================
+// Maps time selections to TMDb runtime filters
+const RUNTIME_CONFIG = {
+    short: { lte: 30 },
+    medium: { gte: 30, lte: 60 },
+    long: { gte: 80, lte: 160 },
+    binge: null // No runtime filter for binging
+};
 
-// ===== INITIALIZATION =====
-document.addEventListener('DOMContentLoaded', () => {
-    initializeEventListeners();
-    updateStepDisplay();
+// ========================================
+// State Management
+// ========================================
+let selectedMood = null;
+let selectedTime = null;
+let selectedGenre = null;
+
+// ========================================
+// DOM Elements
+// ========================================
+const moodButtons = document.querySelectorAll('#mood-buttons .option-btn');
+const timeButtons = document.querySelectorAll('#time-buttons .option-btn');
+const genreButtons = document.querySelectorAll('#genre-buttons .option-btn');
+const form = document.getElementById('finder-form');
+const resultsContainer = document.getElementById('results');
+const submitButton = document.querySelector('.submit-btn');
+const surpriseButton = document.getElementById('surprise-btn');
+const themeToggle = document.getElementById('theme-toggle');
+
+// ========================================
+// Button Group Handler
+// ========================================
+// Handles single-select button groups with visual feedback
+function setupButtonGroup(buttons, callback) {
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons in this group
+            buttons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            button.classList.add('active');
+            // Store the selected value
+            callback(button.dataset.value);
+        });
+    });
+}
+
+// Setup all button groups
+setupButtonGroup(moodButtons, (value) => selectedMood = value);
+setupButtonGroup(timeButtons, (value) => selectedTime = value);
+setupButtonGroup(genreButtons, (value) => selectedGenre = value);
+
+// ========================================
+// Dark Mode Toggle
+// ========================================
+function applyStoredTheme() {
+    const stored = localStorage.getItem('streamfinder-theme');
+    if (stored === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.textContent = '☀︎';
+    } else {
+        document.body.classList.remove('dark-mode');
+        themeToggle.textContent = '☾';
+    }
+}
+
+themeToggle.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('streamfinder-theme', isDark ? 'dark' : 'light');
+    themeToggle.textContent = isDark ? '☀︎' : '☾';
 });
 
-// ===== EVENT LISTENERS =====
-function initializeEventListeners() {
-    // Navigation buttons
-    nextBtn.addEventListener('click', handleNext);
-    prevBtn.addEventListener('click', handlePrevious);
-    findBtn.addEventListener('click', handleFindRecommendations);
-    resetBtn.addEventListener('click', handleReset);
+// Apply theme on load
+applyStoredTheme();
+
+// ========================================
+// Build TMDb API URL
+// ========================================
+function buildApiUrl(mood, time, genre, platforms) {
+    // Start with base discover URL
+    const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
+    const params = url.searchParams;
+
+    // Add API key (required)
+    params.append('api_key', TMDB_API_KEY);
     
-    // Input change listeners to save selections
-    document.querySelectorAll('input[name="mood"]').forEach(input => {
-        input.addEventListener('change', (e) => {
-            userSelections.mood = e.target.value;
-        });
-    });
-    
-    document.querySelectorAll('input[name="time"]').forEach(input => {
-        input.addEventListener('change', (e) => {
-            userSelections.time = e.target.value;
-        });
-    });
-    
-    document.
-querySelectorAll('input[name="genre"]').forEach(input => {
-        input.addEventListener('change', (e) => {
-            userSelections.genre = e.target.value;
-        });
-    });
-    
-    document.querySelectorAll('input[name="services"]').forEach(input => {
-        input.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                userSelections.services.push(e.target.value);
-            } else {
-                userSelections.services = userSelections.services.filter(
-                    service => service !== e.target.value
-                );
+    // Add region for watch providers (always US)
+    params.append('watch_region', 'US');
+
+    // Add streaming platforms if selected
+    if (platforms.length > 0) {
+        params.append('with_watch_providers', platforms.join('|'));
+    }
+
+    // Determine which genre to use:
+    // User-selected genre takes priority over mood-based genre
+    let genreToUse = null;
+    let sortBy = 'popularity.desc'; // Default sort
+    let minVotes = null;
+
+    if (genre) {
+        // User explicitly selected a genre - use that
+        genreToUse = genre;
+    } else if (mood && MOOD_CONFIG[mood]) {
+        // No explicit genre, use mood's preferred genres
+        const moodConfig = MOOD_CONFIG[mood];
+        genreToUse = moodConfig.genres.join(',');
+        sortBy = moodConfig.sort;
+        minVotes = moodConfig.minVotes;
+    }
+
+    // Add genre filter
+    if (genreToUse) {
+        params.append('with_genres', genreToUse);
+    }
+
+    // Add runtime filters based on time selection
+    if (time && RUNTIME_CONFIG[time]) {
+        const runtimeFilter = RUNTIME_CONFIG[time];
+        if (runtimeFilter) {
+            if (runtimeFilter.gte) {
+                params.append('with_runtime.gte', runtimeFilter.gte);
             }
-        });
-    });
-}
-
-// ===== NAVIGATION FUNCTIONS =====
-function handleNext() {
-    // Validate current step before proceeding
-    if (!validateCurrentStep()) {
-        alert('Please make a selection before continuing.');
-        return;
-    }
-    
-    if (currentStep < totalSteps) {
-        currentStep++;
-        updateStepDisplay();
-    }
-}
-
-function handlePrevious() {
-    if (currentStep > 1) {
-        currentStep--;
-        updateStepDisplay();
-    }
-}
-
-function updateStepDisplay() {
-    // Update form step visibility
-    formSteps.forEach((step, index) => {
-        if (index + 1 === currentStep) {
-            step.classList.add('active');
-        } else {
-            step.classList.remove('active');
-        }
-    });
-    
-    // Update progress dots
-    progressDots.forEach((dot, index) => {
-        if (index + 1 <= currentStep) {
-            dot.classList.add('active');
-        } else {
-            dot.classList.remove('active');
-        }
-    });
-    
-    // Update button visibility
-    if (currentStep === 1) {
-        prevBtn.style.display = 'none';
-    } else {
-        prevBtn.style.display = 'inline-block';
-    }
-    
-    if (currentStep === totalSteps) {
-        nextBtn.style.display = 'none';
-        findBtn.style.display = 'inline-block';
-    } else {
-        nextBtn.style.display = 'inline-block';
-        findBtn.style.display = 'none';
-    }
-    
-    // Scroll to top of card for better UX
-    selectorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ===== VALIDATION =====
-function validateCurrentStep() {
-    switch (currentStep) {
-        case 1:
-            return userSelections.mood !== null;
-        case 2:
-            return userSelections.time !== null;
-        case 3:
-            return userSelections.genre !== null;
-        case 4:
-            // Services are optional, but at least warn if none selected
-            if (userSelections.services.length === 0) {
-                return confirm('You haven\'t selected any streaming services. Continue anyway?');
-            }
-            return true;
-        default:
-            return true;
-    }
-}
-
-// ===== FILTERING LOGIC =====
-function filterRecommendations() {
-    return mediaDatabase.filter(item => {
-        // Filter by genre (exact match required)
-        if (item.genre !== userSelections.genre) {
-            return false;
-        }
-        
-        // Filter by mood (item must support user's mood)
-        if (!item.mood.includes(userSelections.mood)) {
-            return false;
-        }
-        
-        // Filter by time availability
-        if (item.time !== userSelections.time) {
-            return false;
-        }
-        
-        // Filter by streaming services (if user selected any)
-        if (userSelections.services.length > 0) {
-            // Check if item is available on at least one selected service
-            const hasMatchingService = item.services.some(service => 
-                userSelections.services.includes(service)
-            );
-            if (!hasMatchingService) {
-                return false;
+            if (runtimeFilter.lte) {
+                params.append('with_runtime.lte', runtimeFilter.lte);
             }
         }
+    }
+
+    // Add sorting
+    params.append('sort_by', sortBy);
+
+    // Add minimum vote count if specified by mood
+    if (minVotes) {
+        params.append('vote_count.gte', minVotes);
+    }
+
+    // Only include movies with at least some votes (baseline)
+    params.append('vote_count.gte', '10');
+
+    return url.toString();
+}
+
+// ========================================
+// Fetch Movies from TMDb
+// ========================================
+async function fetchMovies(mood, time, genre, platforms) {
+    const apiUrl = buildApiUrl(mood, time, genre, platforms);
+    
+    try {
+        const response = await fetch(apiUrl);
         
-        return true;
-    });
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.results || [];
+    } catch (error) {
+        console.error('Error fetching movies:', error);
+        throw error;
+    }
 }
 
-// ===== DISPLAY RESULTS =====
-function handleFindRecommendations() {
-    // Validate that we have all selections
-    if (!validateCurrentStep()) {
-        return;
-    }
-    
-    // Get filtered results
-    const results = filterRecommendations();
-    
-    // Hide selector, show results
-    selectorSection.style.display = 'none';
-    resultsSection.style.display = 'block';
-    
-    // Display results
-    if (results.length > 0) {
-        displayResults(results);
-        noResultsDiv.style.display = 'none';
-    } else {
-        resultsContainer.innerHTML = '';
-        noResultsDiv.style.display = 'block';
-    }
-    
-    // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function displayResults(results) {
+// ========================================
+// Display Results
+// ========================================
+function displayResults(movies, single = false) {
     // Clear previous results
     resultsContainer.innerHTML = '';
-    
-    // Create result cards
-    results.forEach((item, index) => {
-        const card = createResultCard(item, index);
+
+    // If no results, show a message
+    if (movies.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="no-results">
+                <p>No matches found for those filters.</p>
+                <small>Try adjusting your selections or choosing different services</small>
+            </div>
+        `;
+        resultsContainer.classList.add('show');
+        return;
+    }
+
+    let displayMovies;
+
+    if (single) {
+        // Pick one random movie
+        const randomIndex = Math.floor(Math.random() * movies.length);
+        displayMovies = [movies[randomIndex]];
+    } else {
+        // Limit to 10 results
+        displayMovies = movies.slice(0, 10);
+    }
+
+    // Create header
+    const header = document.createElement('h2');
+    header.className = 'results-header';
+    header.textContent = single
+        ? "Here's a surprise pick:"
+        : (displayMovies.length === 1 
+            ? "Here's a match:" 
+            : `Here are ${displayMovies.length} matches:`);
+    resultsContainer.appendChild(header);
+
+    // Create a card for each movie
+    displayMovies.forEach(movie => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+
+        // Get release year
+        const year = movie.release_date 
+            ? new Date(movie.release_date).getFullYear() 
+            : 'N/A';
+
+        // Truncate overview to ~150 characters
+        let overview = movie.overview || 'No description available.';
+        if (overview.length > 150) {
+            overview = overview.substring(0, 150) + '...';
+        }
+
+        // Format rating
+        const rating = movie.vote_average 
+            ? `★ ${movie.vote_average.toFixed(1)}/10` 
+            : 'No rating';
+
+        card.innerHTML = `
+            <h3>${movie.title}</h3>
+            <div class="meta">${year}</div>
+            <div class="overview">${overview}</div>
+            <div class="rating">${rating}</div>
+        `;
+
         resultsContainer.appendChild(card);
     });
+
+    // Trigger fade-in animation
+    resultsContainer.classList.add('show');
 }
 
-function createResultCard(item, index) {
-    const card = document.createElement('div');
-    card.className = 'result-card';
-    
-    // Build services HTML
-    const servicesHTML = item.services
-        .filter(service => userSelections.services.length === 0 || userSelections.services.includes(service))
-        .map(service => `<span class="streaming-service">${capitalizeService(service)}</span>`)
-        .join(' ');
-    
-    card.innerHTML = `
-        <h3>${item.title}</h3>
-        <span class="result-type">${item.type}</span>
-        <p>${item.description}</p>
-        <div class="result-meta">
-            <span class="meta-tag">⏱️ ${item.duration}</span>
-            <span class="meta-tag">🎭 ${capitalizeGenre(item.genre)}</span>
-        </div>
-        <div class="result-meta">
-            ${servicesHTML}
+// ========================================
+// Show Loading State
+// ========================================
+function showLoading(message = 'Searching...') {
+    resultsContainer.innerHTML = `<div class="loading">${message}</div>`;
+    resultsContainer.classList.add('show');
+}
+
+// ========================================
+// Show Error Message
+// ========================================
+function showError() {
+    resultsContainer.innerHTML = `
+        <div class="no-results">
+            <p>Oops! Something went wrong.</p>
+            <small>Please check your API key and try again</small>
         </div>
     `;
-    
-    return card;
+    resultsContainer.classList.add('show');
 }
 
-// ===== RESET FUNCTION =====
-function handleReset() {
-    // Reset all selections
-    userSelections.mood = null;
-    userSelections.time = null;
-    userSelections.genre = null;
-    userSelections.services = [];
-    
-    // Reset form inputs
-    document.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.checked = false;
-    });
-    
-    document.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.checked = false;
-    });
-    
-    // Reset to first step
-    currentStep = 1;
-    updateStepDisplay();
-    
-    // Show selector, hide results
-    resultsSection.style.display = 'none';
-    selectorSection.style.display = 'block';
-    
-    // Scroll to top
-    selectorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+// ========================================
+// Form Submit Handler (Normal search)
+// ========================================
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-// ===== UTILITY FUNCTIONS =====
-function capitalizeService(service) {
-    const serviceNames = {
-        'netflix': 'Netflix',
-        'hulu': 'Hulu',
-        'disney': 'Disney+',
-        'prime': 'Prime Video',
-        'hbo': 'HBO Max',
-        'apple': 'Apple TV+'
-    };
-    return serviceNames[service] || service;
-}
+    // Get selected platforms (checked checkboxes)
+    const selectedPlatforms = Array.from(
+        document.querySelectorAll('input[name="platform"]:checked')
+    ).map(checkbox => checkbox.value);
 
-function capitalizeGenre(genre) {
-    const genreNames = {
-        'comedy': 'Comedy',
-        'drama': 'Drama',
-        'action': 'Action',
-        'thriller': 'Thriller',
-        'scifi': 'Sci-Fi',
-        'documentary': 'Documentary'
-    };
-    return genreNames[genre] || genre;
-}
+    // Disable submit button during search
+    submitButton.disabled = true;
+    submitButton.textContent = 'Searching...';
 
-// ===== KEYBOARD NAVIGATION (Bonus Enhancement) =====
-document.addEventListener('keydown', (e) => {
-    // Only handle keyboard navigation when selector is visible
-    if (selectorSection.style.display === 'none') return;
-    
-    if (e.key === 'ArrowRight' && currentStep < totalSteps) {
-        if (validateCurrentStep()) {
-            handleNext();
-        }
-    } else if (e.key === 'ArrowLeft' && currentStep > 1) {
-        handlePrevious();
-    } else if (e.key === 'Enter' && currentStep === totalSteps) {
-        handleFindRecommendations();
+    // Show loading state
+    showLoading();
+
+    try {
+        // Fetch movies from TMDb
+        const movies = await fetchMovies(
+            selectedMood,
+            selectedTime,
+            selectedGenre,
+            selectedPlatforms
+        );
+
+        // Display the results
+        displayResults(movies, false);
+    } catch (error) {
+        // Show error message
+        showError();
+    } finally {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Find something to watch';
+    }
+});
+
+// ========================================
+// Surprise Me Handler
+// ========================================
+surpriseButton.addEventListener('click', async () => {
+    // Get selected platforms (checked checkboxes)
+    const selectedPlatforms = Array.from(
+        document.querySelectorAll('input[name="platform"]:checked')
+    ).map(checkbox => checkbox.value);
+
+    // Show loading state
+    showLoading('Rolling the dice...');
+
+    // Disable both buttons briefly
+    surpriseButton.disabled = true;
+    submitButton.disabled = true;
+
+    try {
+        // Fetch movies from TMDb using current filters
+        const movies = await fetchMovies(
+            selectedMood,
+            selectedTime,
+            selectedGenre,
+            selectedPlatforms
+        );
+
+        // Display a single random result
+        displayResults(movies, true);
+    } catch (error) {
+        showError();
+    } finally {
+        surpriseButton.disabled = false;
+        submitButton.disabled = false;
+        submitButton.textContent = 'Find something to watch';
     }
 });
