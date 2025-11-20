@@ -2,7 +2,7 @@
 // TMDb API Configuration
 // ========================================
 // IMPORTANT: Replace with your actual TMDb API key
-const TMDB_API_KEY = "YOUR_TMDB_API_KEY_HERE";
+const TMDB_API_KEY = "19d7dac3d2d288ab01b19b005ad32214";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // ========================================
