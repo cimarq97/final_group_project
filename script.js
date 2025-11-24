@@ -1,12 +1,9 @@
 // ========================================
-// TMDb API Configuration (SECURE v4 Token)
+// API & Config
 // ========================================
 const TMDB_V4_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxOWQ3ZGFjM2QyZDI4OGFiMDFiMTliMDA1YWQzMjIxNCIsIm5iZiI6MTc2MzA4MjI4Mi4wOTYsInN1YiI6IjY5MTY4MDJhMzEzN2M3ZGFmMTg3NjVhNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.mNnYHf28DA9OqlRm8Vc6tsVs96b9YrA6eJlnWJbtuXY";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// ========================================
-// Mood Configuration
-// ========================================
 const MOOD_CONFIG = {
     cozy: { genres: [35, 10749], sort: "popularity.desc" },
     excited: { genres: [28, 53, 878], sort: "popularity.desc" },
@@ -15,250 +12,293 @@ const MOOD_CONFIG = {
     curious: { genres: [99, 9648, 18], sort: "vote_average.desc", minVotes: 50 }
 };
 
-// ========================================
-// Runtime Configuration
-// ========================================
 const RUNTIME_CONFIG = {
-    short: { lte: 30 },
-    medium: { gte: 30, lte: 60 },
-    long: { gte: 80, lte: 160 },
-    binge: null
+    short: { lte: 30 }, medium: { gte: 30, lte: 60 },
+    long: { gte: 80, lte: 160 }, binge: null
+};
+
+// Map IDs to Names for the Favorites page
+const GENRE_NAMES = {
+    28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+    80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+    14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+    9648: "Mystery", 10749: "Romance", 878: "Sci-Fi", 10770: "TV Movie",
+    53: "Thriller", 10752: "War", 37: "Western"
 };
 
 // ========================================
-// State Management
+// State & Elements
 // ========================================
-let selectedMood = null;
-let selectedTime = null;
-let selectedGenre = null;
+let currentStep = 0;
+let selections = { mood: null, time: null, genre: null, platforms: [] };
+let favorites = JSON.parse(localStorage.getItem('streamFinderFavs')) || [];
+
+const navQuiz = document.getElementById('nav-quiz');
+const navFavs = document.getElementById('nav-favorites');
+const viewQuiz = document.getElementById('view-quiz');
+const viewFavs = document.getElementById('view-favorites');
+const favCountEl = document.getElementById('fav-count');
 
 // ========================================
-// DOM Elements
+// Navigation Logic
 // ========================================
-const moodButtons = document.querySelectorAll('#mood-buttons .option-btn');
-const timeButtons = document.querySelectorAll('#time-buttons .option-btn');
-const genreButtons = document.querySelectorAll('#genre-buttons .option-btn');
-const form = document.getElementById('finder-form');
-const resultsContainer = document.getElementById('results');
-const submitButton = document.querySelector('.submit-btn');
-const surpriseButton = document.getElementById('surprise-btn');
-const themeToggle = document.getElementById('theme-toggle');
+function switchView(view) {
+    if (view === 'quiz') {
+        viewQuiz.classList.add('active'); viewFavs.classList.remove('active');
+        navQuiz.classList.add('active'); navFavs.classList.remove('active');
+    } else {
+        viewQuiz.classList.remove('active'); viewFavs.classList.add('active');
+        navQuiz.classList.remove('active'); navFavs.classList.add('active');
+        renderCategorizedFavorites();
+    }
+}
+
+navQuiz.addEventListener('click', () => switchView('quiz'));
+navFavs.addEventListener('click', () => switchView('favs'));
 
 // ========================================
-// Button Groups
+// Step Transition Logic (Fade Out -> Fade In)
 // ========================================
-function setupButtonGroup(buttons, callback) {
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            buttons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            callback(button.dataset.value);
+function goToStep(index) {
+    const activeStep = document.querySelector('.quiz-step.active');
+    const nextStepEl = document.getElementById(`step-${index}`);
+
+    if (activeStep) {
+        // Fade out current
+        activeStep.classList.add('fading-out');
+        activeStep.classList.remove('active');
+
+        // Wait for CSS transition (400ms) then show next
+        setTimeout(() => {
+            activeStep.classList.remove('fading-out');
+            activeStep.style.display = 'none'; // Ensure it's gone
+            
+            if (nextStepEl) {
+                nextStepEl.style.display = 'flex'; // Prep for flex
+                // Small timeout to trigger opacity transition
+                setTimeout(() => {
+                    nextStepEl.classList.add('active');
+                }, 50);
+            }
+        }, 400);
+    } else {
+        // First load
+        nextStepEl.classList.add('active');
+    }
+    currentStep = index;
+}
+
+document.querySelectorAll('.next-btn').forEach(btn => {
+    btn.addEventListener('click', () => goToStep(currentStep + 1));
+});
+
+document.querySelectorAll('.back-btn').forEach(btn => {
+    btn.addEventListener('click', () => goToStep(currentStep - 1));
+});
+
+// ========================================
+// Selection Logic
+// ========================================
+function setupSelection(parentId, key) {
+    const parent = document.getElementById(parentId);
+    if(!parent) return;
+    const btns = parent.querySelectorAll('.option-card');
+    const nextBtn = parent.closest('.quiz-step').querySelector('.next-btn');
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selections[key] = btn.dataset.value;
+            if(nextBtn) nextBtn.disabled = false;
         });
     });
 }
 
-setupButtonGroup(moodButtons, v => selectedMood = v);
-setupButtonGroup(timeButtons, v => selectedTime = v);
-setupButtonGroup(genreButtons, v => selectedGenre = v);
+setupSelection('mood-buttons', 'mood');
+setupSelection('time-buttons', 'time');
+setupSelection('genre-buttons', 'genre');
 
 // ========================================
-// Theme Toggle
+// Surprise Button Logic
 // ========================================
-function applyStoredTheme() {
-    const stored = localStorage.getItem('streamfinder-theme');
-    if (stored === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeToggle.textContent = '☀︎';
-    } else {
-        themeToggle.textContent = '☾';
-    }
-}
-themeToggle.addEventListener('click', () => {
-    const isDark = document.body.classList.toggle('dark-mode');
-    themeToggle.textContent = isDark ? '☀︎' : '☾';
-    localStorage.setItem('streamfinder-theme', isDark ? 'dark' : 'light');
+document.getElementById('surprise-btn').addEventListener('click', () => {
+    // 1. Randomize Mood
+    const moods = Object.keys(MOOD_CONFIG);
+    selections.mood = moods[Math.floor(Math.random() * moods.length)];
+    
+    // 2. Clear other filters for maximum chaos/fun
+    selections.time = null;
+    selections.genre = null;
+    selections.platforms = []; // Search all platforms
+
+    // 3. Jump to results
+    goToStep(5);
+    fetchAndDisplayMovies();
 });
-applyStoredTheme();
 
 // ========================================
-// Build TMDb API URL (NO v3 KEY ANYMORE)
+// Fetch & Render Results
 // ========================================
-function buildApiUrl(mood, time, genre, platforms) {
-    const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
-    const params = url.searchParams;
+document.getElementById('quiz-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    selections.platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
+    goToStep(5);
+    fetchAndDisplayMovies();
+});
 
-    params.append("watch_region", "US");
+document.getElementById('restart-btn').addEventListener('click', () => {
+    selections = { mood: null, time: null, genre: null, platforms: [] };
+    document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+    goToStep(0);
+});
 
-    if (platforms.length > 0) {
-        params.append("with_watch_providers", platforms.join("|"));
-    }
-
-    let genreToUse = null;
-    let sortBy = "popularity.desc";
-    let minVotes = null;
-
-    if (genre) {
-        genreToUse = genre;
-    } else if (mood && MOOD_CONFIG[mood]) {
-        const config = MOOD_CONFIG[mood];
-        genreToUse = config.genres.join(",");
-        sortBy = config.sort;
-        minVotes = config.minVotes;
-    }
-
-    if (genreToUse) params.append("with_genres", genreToUse);
-    if (time && RUNTIME_CONFIG[time]) {
-        const rt = RUNTIME_CONFIG[time];
-        if (rt?.gte) params.append("with_runtime.gte", rt.gte);
-        if (rt?.lte) params.append("with_runtime.lte", rt.lte);
-    }
-
-    params.append("sort_by", sortBy);
-    if (minVotes) params.append("vote_count.gte", minVotes);
-    params.append("vote_count.gte", "10");
-
-    return url.toString();
-}
-
-// ========================================
-// Fetch Movies (SECURE v4 TOKEN)
-// ========================================
-async function fetchMovies(mood, time, genre, platforms) {
-    const apiUrl = buildApiUrl(mood, time, genre, platforms);
+async function fetchAndDisplayMovies() {
+    const container = document.getElementById('results-area');
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching archives...</div>';
 
     try {
-        const response = await fetch(apiUrl, {
-            method: "GET",
-            headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${TMDB_V4_TOKEN}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`TMDb error: ${response.status}`);
+        const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
+        url.searchParams.append("watch_region", "US");
+        if(selections.platforms.length) url.searchParams.append("with_watch_providers", selections.platforms.join("|"));
+        
+        // Determine Genre/Sort
+        let genreStr = selections.genre;
+        let sortStr = "popularity.desc";
+        
+        if(!genreStr && selections.mood) {
+            genreStr = MOOD_CONFIG[selections.mood].genres.join(",");
+            sortStr = MOOD_CONFIG[selections.mood].sort;
         }
 
-        const data = await response.json();
-        return data.results || [];
-    } catch (err) {
-        console.error("Error fetching movies:", err);
-        throw err;
+        if(genreStr) url.searchParams.append("with_genres", genreStr);
+        url.searchParams.append("sort_by", sortStr);
+        url.searchParams.append("vote_count.gte", "50");
+
+        // Runtime
+        if(selections.time && RUNTIME_CONFIG[selections.time]) {
+            const rt = RUNTIME_CONFIG[selections.time];
+            if(rt.gte) url.searchParams.append("with_runtime.gte", rt.gte);
+            if(rt.lte) url.searchParams.append("with_runtime.lte", rt.lte);
+        }
+
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const data = await res.json();
+        
+        displayMovies(data.results || [], container);
+    } catch(e) {
+        container.innerHTML = '<div class="empty-state">Error connecting to database.</div>';
     }
 }
 
-// ========================================
-// Display Results
-// ========================================
-function displayResults(movies, single = false) {
-    resultsContainer.innerHTML = "";
+function displayMovies(movies, container) {
+    container.innerHTML = "";
+    if(!movies.length) {
+        container.innerHTML = '<div class="empty-state">No matches found.</div>';
+        return;
+    }
+    // Randomize result order slightly
+    const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
+    shuffled.forEach(m => container.appendChild(createMovieCard(m)));
+}
 
-    if (movies.length === 0) {
-        resultsContainer.innerHTML = `
-            <div class="no-results">
-                <p>No matches found.</p>
-                <small>Try adjusting your filters.</small>
+// ========================================
+// Card Creation (Click to Expand)
+// ========================================
+function createMovieCard(movie) {
+    const div = document.createElement('div');
+    div.className = 'movie-card';
+    const isFav = favorites.some(f => f.id === movie.id);
+    const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+    
+    div.innerHTML = `
+        <div class="movie-header">
+            <div class="movie-title">${movie.title}</div>
+            <div class="movie-meta">
+                <span>${year}</span>
+                <span>★ ${movie.vote_average.toFixed(1)}</span>
             </div>
-        `;
-        resultsContainer.classList.add("show");
+            <div class="click-hint">Click for details</div>
+        </div>
+        <div class="movie-details">
+            <p class="movie-desc">${movie.overview || "No description available."}</p>
+        </div>
+        <button class="fav-btn ${isFav ? 'is-active' : ''}">
+            ${isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'}
+        </button>
+    `;
+
+    // 1. Handle Expansion (Click anywhere on card)
+    div.addEventListener('click', (e) => {
+        // Don't expand if clicking the heart
+        if(e.target.closest('.fav-btn')) return;
+        div.classList.toggle('expanded');
+    });
+
+    // 2. Handle Favorite (Click heart only)
+    const btn = div.querySelector('.fav-btn');
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Stop card from expanding
+        toggleFavorite(movie);
+        
+        // Update Icon immediately
+        const active = favorites.some(f => f.id === movie.id);
+        btn.classList.toggle('is-active', active);
+        btn.innerHTML = active ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+    });
+
+    return div;
+}
+
+// ========================================
+// Favorites (Categorized)
+// ========================================
+function updateFavCount() { favCountEl.innerText = favorites.length; }
+updateFavCount();
+
+function toggleFavorite(movie) {
+    const idx = favorites.findIndex(f => f.id === movie.id);
+    if(idx > -1) favorites.splice(idx, 1);
+    else favorites.push(movie);
+    localStorage.setItem('streamFinderFavs', JSON.stringify(favorites));
+    updateFavCount();
+    if(viewFavs.classList.contains('active')) renderCategorizedFavorites();
+}
+
+function renderCategorizedFavorites() {
+    const container = document.getElementById('favorites-container');
+    container.innerHTML = "";
+    
+    if(favorites.length === 0) {
+        container.innerHTML = '<div class="empty-state">Your watchlist is empty.</div>';
         return;
     }
 
-    let displayMovies = single
-        ? [movies[Math.floor(Math.random() * movies.length)]]
-        : movies.slice(0, 10);
-
-    const header = document.createElement("h2");
-    header.className = "results-header";
-    header.textContent = single
-        ? "Here's your surprise pick:"
-        : `Here are ${displayMovies.length} matches:`;
-    resultsContainer.appendChild(header);
-
-    displayMovies.forEach(movie => {
-        const card = document.createElement("div");
-        card.className = "result-card";
-        const year = movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A";
-
-        let overview = movie.overview || "No description available.";
-        if (overview.length > 150) overview = overview.slice(0, 150) + "...";
-
-        const rating = movie.vote_average ? `★ ${movie.vote_average.toFixed(1)}/10` : "No rating";
-
-        card.innerHTML = `
-            <h3>${movie.title}</h3>
-            <div class="meta">${year}</div>
-            <div class="overview">${overview}</div>
-            <div class="rating">${rating}</div>
-        `;
-        resultsContainer.appendChild(card);
+    // Group by Genre ID (First genre listed in array)
+    const groups = {};
+    
+    favorites.forEach(movie => {
+        // Get first genre ID or 'Uncategorized'
+        const gId = (movie.genre_ids && movie.genre_ids.length > 0) ? movie.genre_ids[0] : 'other';
+        if(!groups[gId]) groups[gId] = [];
+        groups[gId].push(movie);
     });
 
-    resultsContainer.classList.add("show");
-}
-
-// ========================================
-// Loading + Error States
-// ========================================
-function showLoading(msg = "Searching...") {
-    resultsContainer.innerHTML = `<div class="loading">${msg}</div>`;
-    resultsContainer.classList.add("show");
-}
-
-function showError() {
-    resultsContainer.innerHTML = `
-        <div class="no-results">
-            <p>Something went wrong.</p>
-            <small>Check your API token or try again.</small>
-        </div>
-    `;
-    resultsContainer.classList.add("show");
-}
-
-// ========================================
-// Form Submit Handler (Normal Search)
-// ========================================
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const selectedPlatforms = Array.from(
-        document.querySelectorAll('input[name="platform"]:checked')
-    ).map(cb => cb.value);
-
-    submitButton.disabled = true;
-    submitButton.textContent = "Searching...";
-    showLoading();
-
-    try {
-        const movies = await fetchMovies(selectedMood, selectedTime, selectedGenre, selectedPlatforms);
-        displayResults(movies);
-    } catch {
-        showError();
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = "Find something to watch";
+    // Render Groups
+    for (const [gId, movies] of Object.entries(groups)) {
+        const section = document.createElement('div');
+        section.className = 'genre-section';
+        
+        const genreName = GENRE_NAMES[gId] || "Uncategorized";
+        
+        section.innerHTML = `<h3 class="genre-title">${genreName} (${movies.length})</h3>`;
+        
+        const grid = document.createElement('div');
+        grid.className = 'results-grid';
+        
+        movies.forEach(m => grid.appendChild(createMovieCard(m)));
+        section.appendChild(grid);
+        container.appendChild(section);
     }
-});
-
-// ========================================
-// Surprise Me Button
-// ========================================
-surpriseButton.addEventListener("click", async () => {
-    const selectedPlatforms = Array.from(
-        document.querySelectorAll('input[name="platform"]:checked')
-    ).map(cb => cb.value);
-
-    showLoading("Picking something fun...");
-    submitButton.disabled = true;
-    surpriseButton.disabled = true;
-
-    try {
-        const movies = await fetchMovies(selectedMood, selectedTime, selectedGenre, selectedPlatforms);
-        displayResults(movies, true);
-    } catch {
-        showError();
-    } finally {
-        submitButton.disabled = false;
-        surpriseButton.disabled = false;
-    }
-});
+}
