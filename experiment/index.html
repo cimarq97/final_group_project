@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFinder | Cinematic Mode</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-film"></i> StreamFinder
+        </div>
+        <div class="nav-links">
+            <button id="nav-quiz" class="nav-item active">Find Movies</button>
+            <button id="nav-favorites" class="nav-item">My Watchlist <span id="fav-count">0</span></button>
+        </div>
+    </nav>
+
+    <main>
+        <div id="view-quiz" class="view-container active">
+            
+            <form id="quiz-form">
+                
+                <div class="quiz-step active" id="step-0">
+                    <div class="step-content text-center">
+                        <h1>Welcome to the Cinema</h1>
+                        <p class="tagline">Let's find the perfect movie for your mood.</p>
+                        
+                        <div class="start-actions">
+                            <button type="button" class="action-btn primary-btn next-btn">Get Started</button>
+                            <button type="button" id="surprise-btn" class="action-btn secondary-btn">
+                                <i class="fas fa-magic"></i> Surprise Me
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-step" id="step-1">
+                    <div class="step-header">
+                        <h2>Question 1/4</h2>
+                        <label>How are you feeling right now?</label>
+                    </div>
+                    <div class="grid-options" id="mood-buttons">
+                        <button type="button" class="option-card" data-value="cozy"><i class="fas fa-mug-hot"></i><span>Cozy</span></button>
+                        <button type="button" class="option-card" data-value="excited"><i class="fas fa-bolt"></i><span>Excited</span></button>
+                        <button type="button" class="option-card" data-value="sad"><i class="fas fa-cloud-rain"></i><span>Sad</span></button>
+                        <button type="button" class="option-card" data-value="tired"><i class="fas fa-bed"></i><span>Tired</span></button>
+                        <button type="button" class="option-card" data-value="curious"><i class="fas fa-search"></i><span>Curious</span></button>
+                    </div>
+                    <div class="step-nav">
+                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="button" class="nav-btn next-btn" disabled>Next</button>
+                    </div>
+                </div>
+
+                <div class="quiz-step" id="step-2">
+                    <div class="step-header">
+                        <h2>Question 2/4</h2>
+                        <label>How much time do you have?</label>
+                    </div>
+                    <div class="grid-options" id="time-buttons">
+                        <button type="button" class="option-card" data-value="short"><i class="fas fa-hourglass-start"></i><span>&lt; 30 min</span></button>
+                        <button type="button" class="option-card" data-value="medium"><i class="fas fa-hourglass-half"></i><span>30–60 min</span></button>
+                        <button type="button" class="option-card" data-value="long"><i class="fas fa-hourglass-end"></i><span>Movie-length</span></button>
+                        <button type="button" class="option-card" data-value="binge"><i class="fas fa-infinity"></i><span>I'm Binging</span></button>
+                    </div>
+                    <div class="step-nav">
+                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="button" class="nav-btn next-btn" disabled>Next</button>
+                    </div>
+                </div>
+
+                <div class="quiz-step" id="step-3">
+                    <div class="step-header">
+                        <h2>Question 3/4</h2>
+                        <label>Pick a genre vibe</label>
+                    </div>
+                    <div class="grid-options" id="genre-buttons">
+                        <button type="button" class="option-card" data-value="35">Comedy</button>
+                        <button type="button" class="option-card" data-value="10749">Romance</button>
+                        <button type="button" class="option-card" data-value="27">Horror</button>
+                        <button type="button" class="option-card" data-value="18">Drama</button>
+                        <button type="button" class="option-card" data-value="878">Sci-Fi</button>
+                        <button type="button" class="option-card" data-value="99">Documentary</button>
+                    </div>
+                    <div class="step-nav">
+                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="button" class="nav-btn next-btn" disabled>Next</button>
+                    </div>
+                </div>
+
+                <div class="quiz-step" id="step-4">
+                    <div class="step-header">
+                        <h2>Final Question</h2>
+                        <label>Select your streaming services</label>
+                    </div>
+                    <div class="checkbox-group-styled">
+                        <label class="check-card"><input type="checkbox" name="platform" value="8"><span>Netflix</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="15"><span>Hulu</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="1899"><span>Max</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="337"><span>Disney+</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="9"><span>Prime</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="531"><span>Paramount+</span></label>
+                    </div>
+                    <div class="step-nav">
+                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="submit" class="action-btn primary-btn" id="reveal-btn">Reveal Movies</button>
+                    </div>
+                </div>
+
+                <div class="quiz-step" id="step-5">
+                    <div id="results-area" class="results-grid">
+                        </div>
+                    <div class="step-nav centered">
+                        <button type="button" class="nav-btn" id="restart-btn">Start Over</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div id="view-favorites" class="view-container">
+            <div class="favorites-header">
+                <h1>My Watchlist</h1>
+                <p>Categorized by Genre</p>
+            </div>
+            <div id="favorites-container">
+                </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Created by <a href="https://www.linkedin.com/in/camille-marquez-m-s-76a9391b3/" target="_blank">Camille Marquez</a> and <a href="https://www.linkedin.com/in/jordanstahl/" target="_blank">Jordan Stahl</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
