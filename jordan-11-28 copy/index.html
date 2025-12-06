@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>StreamFinder | Cinematic Mode</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+
+    <video id="bg-video" autoplay muted loop playsinline>
+        <source src="background.mp4" type="video/mp4" /> 
+    </video>
 
     <nav class="navbar">
         <div class="nav-brand">
@@ -21,14 +25,12 @@
 
     <main>
         <div id="view-quiz" class="view-container active">
-            
             <form id="quiz-form">
-                
+
                 <div class="quiz-step active" id="step-0">
                     <div class="step-content text-center">
                         <h1>Welcome to the Cinema</h1>
                         <p class="tagline">Let's find the perfect movie for your mood.</p>
-                        
                         <div class="start-actions">
                             <button type="button" class="action-btn primary-btn next-btn">Get Started</button>
                             <button type="button" id="surprise-btn" class="action-btn secondary-btn">
@@ -51,7 +53,7 @@
                         <button type="button" class="option-card" data-value="curious"><i class="fas fa-search"></i><span>Curious</span></button>
                     </div>
                     <div class="step-nav">
-                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="button" class="nav-btn back-btn" data-target="0">Back</button>
                         <button type="button" class="nav-btn next-btn" disabled>Next</button>
                     </div>
                 </div>
@@ -68,7 +70,7 @@
                         <button type="button" class="option-card" data-value="binge"><i class="fas fa-infinity"></i><span>I'm Binging</span></button>
                     </div>
                     <div class="step-nav">
-                        <button type="button" class="nav-btn back-btn">Back</button>
+                        <button type="button" class="nav-btn back-btn" data-target="1">Back</button>
                         <button type="button" class="nav-btn next-btn" disabled>Next</button>
                     </div>
                 </div>
@@ -76,19 +78,19 @@
                 <div class="quiz-step" id="step-3">
                     <div class="step-header">
                         <h2>Question 3/4</h2>
-                        <label>Pick a genre vibe</label>
+                        <label>Pick your genre vibe(s)</label>
                     </div>
                     <div class="grid-options" id="genre-buttons">
-                        <button type="button" class="option-card" data-value="35">Comedy</button>
-                        <button type="button" class="option-card" data-value="10749">Romance</button>
-                        <button type="button" class="option-card" data-value="27">Horror</button>
-                        <button type="button" class="option-card" data-value="18">Drama</button>
-                        <button type="button" class="option-card" data-value="878">Sci-Fi</button>
-                        <button type="button" class="option-card" data-value="99">Documentary</button>
+                        <button type="button" class="option-card" data-genre-id="35">Comedy</button>
+                        <button type="button" class="option-card" data-genre-id="10749">Romance</button>
+                        <button type="button" class="option-card" data-genre-id="27">Horror</button>
+                        <button type="button" class="option-card" data-genre-id="18">Drama</button>
+                        <button type="button" class="option-card" data-genre-id="878">Sci-Fi</button>
+                        <button type="button" class="option-card" data-genre-id="99">Documentary</button>
                     </div>
                     <div class="step-nav">
-                        <button type="button" class="nav-btn back-btn">Back</button>
-                        <button type="button" class="nav-btn next-btn" disabled>Next</button>
+                        <button type="button" class="nav-btn back-btn" data-target="2">Back</button>
+                        <button type="button" class="nav-btn next-btn">Next</button> 
                     </div>
                 </div>
 
@@ -102,20 +104,19 @@
                         <label class="check-card"><input type="checkbox" name="platform" value="15"><span>Hulu</span></label>
                         <label class="check-card"><input type="checkbox" name="platform" value="1899"><span>Max</span></label>
                         <label class="check-card"><input type="checkbox" name="platform" value="337"><span>Disney+</span></label>
-                        <label class="check-card"><input type="checkbox" name="platform" value="9"><span>Prime</span></label>
+                        <label class="check-card"><input type="checkbox" name="platform" value="9"><span>Prime Video</span></label>
                         <label class="check-card"><input type="checkbox" name="platform" value="531"><span>Paramount+</span></label>
                     </div>
                     <div class="step-nav">
-                        <button type="button" class="nav-btn back-btn">Back</button>
-                        <button type="submit" class="action-btn primary-btn" id="reveal-btn">Reveal Movies</button>
+                        <button type="button" class="nav-btn back-btn" data-target="3">Back</button>
+                        <button type="submit" class="action-btn primary-btn" id="reveal-btn">Reveal Picks</button>
                     </div>
                 </div>
 
                 <div class="quiz-step" id="step-5">
-                    <div id="results-area" class="results-grid">
-                        </div>
+                    <div id="results-area" class="results-grid"></div>
                     <div class="step-nav centered">
-                        <button type="button" class="nav-btn" id="restart-btn">Start Over</button>
+                        <button type="button" class="action-btn secondary-btn" id="restart-btn"><i class="fas fa-undo"></i> Start Over</button>
                     </div>
                 </div>
 
@@ -125,12 +126,10 @@
         <div id="view-favorites" class="view-container">
             <div class="favorites-header">
                 <h1>My Watchlist</h1>
-                <p>Categorized by Genre</p>
+                <p>Movies and Shows saved for later.</p>
             </div>
-            <div id="favorites-container">
-                </div>
+            <div id="favorites-container"></div>
         </div>
-
     </main>
 
     <footer class="footer">
