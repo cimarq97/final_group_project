@@ -48,7 +48,10 @@ const CHATBOT_RULES = {
         { keywords: ['family', 'kids', 'children', 'family-friendly', 'fun for all', 'parents', 'kids movie'], genres: [10751], mood: 'Family Watcher' },
         
         // Historical
-        { keywords: ['historical', 'history', 'period', 'based on true', 'war', 'historical drama', 'period piece'], genres: [10752, 36], mood: 'History Enthusiast' }
+        { keywords: ['historical', 'history', 'period', 'based on true', 'war', 'historical drama', 'period piece'], genres: [10752, 36], mood: 'History Enthusiast' },
+        
+        // Top-Rated Films
+        { keywords: ['top rated', 'highest rated', 'best rated', 'best films', 'best movies', 'most rated', 'highly rated', 'rated', 'best of'], genres: [28, 35, 18, 878, 53, 27, 10749], mood: 'Top-Rated Films' }
     ]
 };
 
@@ -57,7 +60,8 @@ const MOOD_CONFIG = {
     excited: { genres: [28, 53, 878], sort: "popularity.desc" },
     sad: { genres: [18, 10752], sort: "vote_average.desc", minVotes: 100 },
     tired: { genres: [35, 10751], sort: "popularity.desc", minVotes: 50 },
-    curious: { genres: [99, 9648, 18], sort: "vote_average.desc", minVotes: 50 }
+    curious: { genres: [99, 9648, 18], sort: "vote_average.desc", minVotes: 50 },
+    topRated: { genres: [28, 35, 18, 878, 53, 27, 10749], sort: "vote_average.desc", minVotes: 200 }
 };
 
 const RUNTIME_CONFIG = {
@@ -367,79 +371,10 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Ripple effect for buttons
-document.querySelectorAll('.action-btn, .primary-btn, .secondary-btn, .nav-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        const rect = btn.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
-        btn.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 600);
-    });
-});
-
 logoHome.addEventListener('click', () => {
     switchView('quiz');
     goToStep(0);
 });
-
-// ========================================
-// Form Validation Helper Functions
-// ========================================
-function setFieldError(field, message) {
-    if (!field) return;
-    field.classList.remove('input-success');
-    field.classList.add('input-error');
-    
-    // Remove existing error message
-    let existingMsg = field.nextElementSibling;
-    if (existingMsg && existingMsg.classList.contains('form-error-message')) {
-        existingMsg.remove();
-    }
-    
-    // Add error message
-    if (message) {
-        const msgEl = document.createElement('span');
-        msgEl.className = 'form-error-message';
-        msgEl.textContent = message;
-        field.parentNode.insertBefore(msgEl, field.nextSibling);
-    }
-}
-
-function setFieldSuccess(field, message) {
-    if (!field) return;
-    field.classList.remove('input-error');
-    field.classList.add('input-success');
-    
-    // Remove existing success message
-    let existingMsg = field.nextElementSibling;
-    if (existingMsg && existingMsg.classList.contains('form-success-message')) {
-        existingMsg.remove();
-    }
-    
-    // Add success message
-    if (message) {
-        const msgEl = document.createElement('span');
-        msgEl.className = 'form-success-message';
-        msgEl.textContent = message;
-        field.parentNode.insertBefore(msgEl, field.nextSibling);
-    }
-}
-
-function clearFieldState(field) {
-    if (!field) return;
-    field.classList.remove('input-error', 'input-success');
-    
-    // Remove any error/success messages
-    let msg = field.nextElementSibling;
-    if (msg && (msg.classList.contains('form-error-message') || msg.classList.contains('form-success-message'))) {
-        msg.remove();
-    }
-}
 
 function goToStep(index, addToHistory = true) {
     if (index < 0 || index > 5) return; 
@@ -692,14 +627,7 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
 
     } catch(e) {
         console.error("Fetch Error:", e);
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-circle"></i>
-                <h3>Connection Error</h3>
-                <p>Unable to connect to the movie database. Please check your internet connection and try again.</p>
-                <button class="cta-button" onclick="location.reload();">Retry</button>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state">Error connecting to database.</div>';
         if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
     }
 }
@@ -749,14 +677,7 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
 function displayMovies(movies, container) {
     container.innerHTML = "";
     if(!movies.length) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-search"></i>
-                <h3>No Matches Found</h3>
-                <p>We couldn't find any movies matching your criteria. Try adjusting your filters or selecting different genres and platforms.</p>
-                <button class="cta-button" onclick="document.getElementById('nav-quiz').click();">Adjust Filters</button>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state">No matches found. Try different filters.</div>';
         return;
     }
     
@@ -852,14 +773,7 @@ function sortResults(sortType) {
 async function displaySurpriseMovies(movies, container) {
     container.innerHTML = "";
     if(!movies.length) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-rabbit"></i>
-                <h3>No Surprises Found</h3>
-                <p>We couldn't find any surprise movies on your selected platforms. Try expanding your platform selection or adjusting your criteria.</p>
-                <button class="cta-button" onclick="document.getElementById('nav-quiz').click();">Change Preferences</button>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state">No surprises found on your selected platforms.</div>';
         return;
     }
 
@@ -914,14 +828,7 @@ async function displaySurpriseMovies(movies, container) {
     });
 
     if (Object.keys(groups).length === 0) {
-         container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-info-circle"></i>
-                <h3>Streaming Info Unavailable</h3>
-                <p>We found great movies but couldn't verify streaming availability. Please try again or adjust your platform selection.</p>
-                <button class="cta-button" onclick="document.getElementById('nav-quiz').click();">Go Back</button>
-            </div>
-        `;
+         container.innerHTML = '<div class="empty-state">Could not verify streaming providers for the results.</div>';
          return;
     }
 
@@ -1184,6 +1091,15 @@ function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
             "⚔️ Step back in time! Here are powerful period pieces!",
             "🏰 Here are some compelling historical dramas!"
         ],
+        'Top-Rated Films': isShowRequest ? [
+            "⭐ Here are the highest-rated TV shows of all time!",
+            "🏆 These are the critically acclaimed series everyone loves!",
+            "👑 Check out these absolute masterpieces - the best rated shows!"
+        ] : [
+            "⭐ Here are the highest-rated movies of all time!",
+            "🏆 These are the critically acclaimed films everyone loves!",
+            "👑 Check out these absolute masterpieces - the best rated movies!"
+        ],
         'Movie Enthusiast': isShowRequest ? [
             "🎬 Here are some great TV shows for you!",
             "🌟 Let me find some perfect shows for you!",
@@ -1262,10 +1178,18 @@ async function searchMoviesByRules(genreIds, mood) {
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
         url.searchParams.append('with_genres', genreIds.join(','));
-        url.searchParams.append('sort_by', 'popularity.desc');
+        
+        // Use vote_average sorting for top-rated films, popularity for others
+        if (mood === 'Top-Rated Films') {
+            url.searchParams.append('sort_by', 'vote_average.desc');
+            url.searchParams.append('vote_count.gte', '200');
+        } else {
+            url.searchParams.append('sort_by', 'popularity.desc');
+            url.searchParams.append('vote_count.gte', '50');
+        }
+        
         url.searchParams.append('page', '1');
         url.searchParams.append('include_adult', 'false');
-        url.searchParams.append('vote_count.gte', '50');
         
         const res = await fetch(url, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
@@ -1299,10 +1223,18 @@ async function searchTVShowsByRules(genreIds, mood) {
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/tv`);
         url.searchParams.append('with_genres', genreIds.join(','));
-        url.searchParams.append('sort_by', 'popularity.desc');
+        
+        // Use vote_average sorting for top-rated films, popularity for others
+        if (mood === 'Top-Rated Films') {
+            url.searchParams.append('sort_by', 'vote_average.desc');
+            url.searchParams.append('vote_count.gte', '200');
+        } else {
+            url.searchParams.append('sort_by', 'popularity.desc');
+            url.searchParams.append('vote_count.gte', '50');
+        }
+        
         url.searchParams.append('page', '1');
         url.searchParams.append('include_adult', 'false');
-        url.searchParams.append('vote_count.gte', '50');
         
         const res = await fetch(url, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
@@ -1556,16 +1488,6 @@ function createMovieCard(movie) {
 function updateFavCount() { 
     favCountEl.innerText = favorites.length; 
     favCountEl.style.display = favorites.length > 0 ? 'inline' : 'none';
-    
-    // Trigger animation
-    favCountEl.classList.remove('updated');
-    void favCountEl.offsetWidth; // Trigger reflow to restart animation
-    favCountEl.classList.add('updated');
-    
-    // Remove animation class after it completes
-    setTimeout(() => {
-        favCountEl.classList.remove('updated');
-    }, 600);
 }
 updateFavCount();
 
@@ -1617,14 +1539,7 @@ function renderCategorizedFavorites() {
     container.innerHTML = "";
     
     if(favorites.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bookmark"></i>
-                <h3>Your Watchlist is Empty</h3>
-                <p>Start building your personalized watchlist by exploring movies and adding your favorites!</p>
-                <button class="cta-button" onclick="document.getElementById('nav-quiz').click();">Find Movies</button>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state">Your watchlist is empty. Go find some great content!</div>';
         return;
     }
 
@@ -1640,14 +1555,7 @@ function renderCategorizedFavorites() {
     });
 
     if (filteredFavorites.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-filter"></i>
-                <h3>No Matches Found</h3>
-                <p>No movies in your watchlist match the current filters. Try adjusting your selections.</p>
-                <button class="cta-button" onclick="document.getElementById('clear-filters-btn').click();">Clear Filters</button>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state">No movies matched your current filters.</div>';
         return;
     }
 
