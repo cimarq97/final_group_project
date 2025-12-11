@@ -342,6 +342,31 @@ navQuiz.addEventListener('click', () => switchView('quiz'));
 navAI.addEventListener('click', () => switchView('ai'));
 navFavs.addEventListener('click', () => switchView('favs'));
 
+// Hamburger Menu Toggle
+const hamburgerBtn = document.getElementById('hamburger-btn');
+const navLinks = document.getElementById('nav-links');
+
+hamburgerBtn.addEventListener('click', () => {
+    hamburgerBtn.classList.toggle('active');
+    navLinks.classList.toggle('active');
+});
+
+// Close menu when a nav item is clicked
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        hamburgerBtn.classList.remove('active');
+        navLinks.classList.remove('active');
+    });
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.navbar')) {
+        hamburgerBtn.classList.remove('active');
+        navLinks.classList.remove('active');
+    }
+});
+
 logoHome.addEventListener('click', () => {
     switchView('quiz');
     goToStep(0);
@@ -1491,10 +1516,19 @@ function renderCategorizedFavorites() {
         movies.forEach(m => {
              // For favorites, we manually reconstruct the providers property from the stored names 
              // to include the URL for the card creation function, ensuring the card looks the same.
-             m.providers = m.providers.map(name => {
-                 const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
-                 return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
-             });
+             // Handle both string arrays and already-formatted objects
+             if (m.providers && Array.isArray(m.providers)) {
+                 m.providers = m.providers.map(item => {
+                     // If it's already an object with name property, use it
+                     if (typeof item === 'object' && item.name) {
+                         return item;
+                     }
+                     // If it's a string, convert to object
+                     const name = String(item);
+                     const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                     return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
+                 });
+             }
              grid.appendChild(createMovieCard(m));
         });
         section.appendChild(grid);
