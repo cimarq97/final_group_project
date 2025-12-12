@@ -562,26 +562,16 @@ document.getElementById('quiz-form').addEventListener('submit', (e) => {
     fetchAndDisplayMovies(false);
 });
 
-document.getElementById('restart-btn').addEventListener('click', () => {
-    selections = { mood: null, time: null, genres: [], platforms: [] };
-    document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
-    // FIX: Clear all checkboxes and remove the 'selected' class from platform cards on restart
-    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-    document.querySelectorAll('.platform-card.selected').forEach(c => c.classList.remove('selected'));
-    currentResultsCache = [];
-    if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
-    const feedbackLoop = document.getElementById('feedback-loop');
-    if (feedbackLoop) feedbackLoop.style.display = 'none';
-    goToStep(0);
+document.getElementById('back-to-top-btn').addEventListener('click', () => {
+    // Scroll to top of the page smoothly
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
 });
 
-// Browse All Moods button
-const browseAllBtn = document.getElementById('browse-all-btn');
-if (browseAllBtn) {
-    browseAllBtn.addEventListener('click', () => {
-        goToStep(0);
-    });
-}
+// Old button handlers removed - back-to-top button replaces restart and browse all
+
 
 // Update vibe button and add click handler
 function updateVibeButton() {
