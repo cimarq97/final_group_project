@@ -822,22 +822,20 @@ function displayMovies(movies, container) {
         return;
     }
 
-    // Shuffle and slice for normal display
-    // NOTE: This is where the list is limited to 10 for display, 
-    // but the summary still shows the total matches fetched (the fix above).
+    // Shuffle and slice for normal display (max 10)
     const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
 
-    // Fetch additional data for each movie and ensure platform info is set
-    shuffled.forEach(async m => {
-        const enrichedMovie = await enrichMovieData(m);
-        
-        // Ensure platformName and platformUrl are set (for consistent card display)
-        if (!enrichedMovie.platformName && enrichedMovie.providers && enrichedMovie.providers.length > 0) {
-            enrichedMovie.platformName = enrichedMovie.providers[0].name;
-            enrichedMovie.platformUrl = enrichedMovie.providers[0].url;
-        }
-        
-        container.appendChild(createMovieCard(enrichedMovie));
+    // Fetch additional data for each movie using enrichMovieData
+    const promises = shuffled.map(m => enrichMovieData(m));
+    
+    Promise.all(promises).then(enrichedMovies => {
+        enrichedMovies.forEach(movie => {
+            // Use createChatbotCard for consistent appearance and behavior with bot results
+            container.appendChild(createChatbotCard(movie));
+        });
+    }).catch(err => {
+        console.error("Error enriching movies:", err);
+        container.innerHTML = '<div class="empty-state">Error loading movie details.</div>';
     });
 }
 
