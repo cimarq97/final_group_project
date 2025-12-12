@@ -731,8 +731,6 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
         <div class="sort-controls">
             <label for="sort-by-platform">Sort by platform:</label>
             <select id="sort-by-platform" class="sort-select">
-                <option value="default">All Platforms</option>
-                <option value="platform">Streaming Platform</option>
                 ${platformOptions}
             </select>
         </div>`;
