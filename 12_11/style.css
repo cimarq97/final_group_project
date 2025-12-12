@@ -804,7 +804,10 @@ main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1r
 }
 
 #ai-send-btn {
-    align-self: flex-end;
+    align-self: center;
+    max-width: 200px;
+    padding: 0.8rem 1.8rem;
+    font-size: 0.95rem;
     transition: all 0.3s ease;
 }
 

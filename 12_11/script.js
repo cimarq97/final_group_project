@@ -338,6 +338,18 @@ function switchView(view) {
     } else if (view === 'ai') {
         viewAI.classList.add('active');
         navAI.classList.add('active');
+        // Show initial greeting if chat is empty
+        if (aiMessages.children.length === 0) {
+            const greetingMessage = document.createElement('div');
+            greetingMessage.className = 'ai-message bot-message';
+            greetingMessage.innerHTML = `
+                <div class="message-content">
+                    <p>Hi! 👋 Tell me what you're in the mood for, and I'll find the perfect movie or show for you!</p>
+                </div>
+            `;
+            aiMessages.appendChild(greetingMessage);
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
     } else {
         viewFavs.classList.add('active');
         navFavs.classList.add('active');
