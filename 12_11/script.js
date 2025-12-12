@@ -1807,6 +1807,31 @@ function populateFavoriteFilters(genreFilterEl, platformFilterEl) {
 }
 
 // ========================================
+// Back-to-Top Button Handler
+// ========================================
+const backToTopBtn = document.getElementById('back-to-top-btn');
+const viewFavsContainer = document.getElementById('view-favorites');
+
+if (backToTopBtn && viewFavsContainer) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.style.display = 'block';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    });
+
+    // Scroll to top when button is clicked
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+// ========================================
 // Initialization (Unchanged)
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
