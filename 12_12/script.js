@@ -683,16 +683,17 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
 function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     if (!resultsSummaryEl) return;
     let summaryHTML = '';
+    let titleHTML = '';
 
     // FIX: Use the actual count of results fetched from the API for the "potential matches" number
     const resultCount = currentResultsCache.length;
 
     if (isSurpriseMode) {
-        summaryHTML = `
-            <h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>
-            <p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across your streaming apps</p>
-        `;
+        titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
+        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across your streaming apps</p>`;
     } else {
+        titleHTML = `<h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>`;
+        
         const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
         const timeText = selections.time ? `<span class="summary-item"><i class="fas fa-clock"></i> <strong>Time:</strong> ${selections.time}</span>` : '';
 
@@ -707,7 +708,6 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
 
         // FIX: Improved summary copy - more engaging
         summaryHTML = `
-            <h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>
             <p class="summary-tagline">${resultCount} films selected for your <strong>${selections.mood}</strong> vibe</p>
             <div class="summary-details">
                 ${moodText}
@@ -718,6 +718,13 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
         `;
     }
 
+    // Set title at top
+    const titleEl = document.getElementById('results-title');
+    if (titleEl) {
+        titleEl.innerHTML = titleHTML;
+    }
+
+    // Set summary below feedback
     resultsSummaryEl.innerHTML = summaryHTML;
     updateVibeButton();
     showFeedbackLoop();
