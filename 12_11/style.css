@@ -615,14 +615,14 @@ main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1r
    Results Summary (NEW FEATURE)
    ========================================= */
 .results-summary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid var(--accent-gold);
-    border-radius: 15px;
-    padding: 2.5rem;
-    margin-bottom: 3.5rem;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
     text-align: center;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.2);
+    backdrop-filter: none;
+    box-shadow: none;
     animation: fadeIn 0.8s ease;
 }
 .summary-title {
@@ -640,7 +640,7 @@ main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1r
     flex-wrap: wrap;
     justify-content: center;
     gap: 1.5rem;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
 }
 .summary-item {
     background: rgba(122, 32, 32, 0.8);
