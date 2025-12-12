@@ -827,10 +827,41 @@ function displayMovies(movies, container) {
     const promises = shuffled.map(m => enrichMovieData(m));
     
     Promise.all(promises).then(enrichedMovies => {
-        enrichedMovies.forEach(movie => {
-            // Use createChatbotCard for consistent appearance and behavior with bot results
-            container.appendChild(createChatbotCard(movie));
+        // Group by platform for consistent layout
+        const groups = {};
+        enrichedMovies.forEach((movie) => {
+            const rawProviders = movie.providers || [];
+            
+            if (rawProviders.length > 0) {
+                // Group by first provider
+                const platformKey = rawProviders[0].name;
+                
+                if (!groups[platformKey]) {
+                    groups[platformKey] = { name: platformKey, movies: [] };
+                }
+                
+                groups[platformKey].movies.push(movie);
+            }
         });
+        
+        // Render each platform group with horizontal scroll
+        for (const group of Object.values(groups)) {
+            const section = document.createElement('div');
+            section.className = 'platform-section';
+            section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'favorites-grid';
+            
+            group.movies.forEach(movie => {
+                // Use createChatbotCard for consistent appearance
+                grid.appendChild(createChatbotCard(movie));
+            });
+            
+            section.appendChild(grid);
+            container.appendChild(section);
+        }
+
     }).catch(err => {
         console.error("Error enriching movies:", err);
         container.innerHTML = '<div class="empty-state">Error loading movie details.</div>';
@@ -896,10 +927,11 @@ async function displaySurpriseMovies(movies, container) {
         return;
     }
 
-    const groups = {};
     const promises = movies.sort(() => 0.5 - Math.random()).slice(0, 15).map(m => enrichMovieData(m));
     const enrichedMovies = await Promise.all(promises);
 
+    // Group by platform
+    const groups = {};
     enrichedMovies.forEach((movie) => {
         const rawProviders = movie.providers || [];
 
@@ -917,7 +949,6 @@ async function displaySurpriseMovies(movies, container) {
                 }
 
                 // Attach the selected provider name/URL object to the movie for card creation
-                // NOTE: This uses platformName/platformUrl to signify it's the *primary* platform for surprise mode grouping
                 movie.platformName = selectedProvider.name;
                 movie.platformUrl = selectedProvider.url;
                 groups[platformKey].movies.push(movie);
@@ -930,13 +961,14 @@ async function displaySurpriseMovies(movies, container) {
         return;
     }
 
+    // Render each platform group with horizontal scroll
     for (const group of Object.values(groups)) {
         const section = document.createElement('div');
         section.className = 'platform-section';
         section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
 
         const grid = document.createElement('div');
-        grid.className = 'results-grid';
+        grid.className = 'favorites-grid';
 
         group.movies.forEach(m => grid.appendChild(createChatbotCard(m)));
         section.appendChild(grid);
