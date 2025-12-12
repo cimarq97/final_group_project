@@ -206,15 +206,32 @@
                     </div>
                 </div>
                 <div class="quiz-step" id="step-5" role="region" aria-label="Movie recommendations results">
+                    <div class="vibe-selector" id="vibe-selector">
+                        <p class="vibe-announcement">Your vibe today: <span class="vibe-text" id="vibe-text"></span> ✨</p>
+                        <p class="emotional-hook">Get ready for films that match your energy. Let's find your next obsession.</p>
+                        
+                        <div id="feedback-loop" class="feedback-loop" style="display: none;">
+                            <p>Was this vibe right for you?</p>
+                            <div class="feedback-buttons">
+                                <button type="button" class="feedback-btn" data-feedback="loved" title="Nailed it">😍 Nailed it</button>
+                                <button type="button" class="feedback-btn" data-feedback="okay" title="Close">😐 Close</button>
+                                <button type="button" class="feedback-btn" data-feedback="nope" title="Not quite">😤 Nope</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="results-summary" class="results-summary" aria-live="polite"
                         aria-label="Your personalized movie recommendations"></div>
 
 
                     <div id="results-area" class="results-grid" role="grid" aria-label="List of recommended movies">
                     </div>
+
                     <div class="step-nav centered">
                         <button type="button" class="action-btn secondary-btn" id="restart-btn"
-                            aria-label="Restart the quiz"><i class="fas fa-undo"></i> Start Over</button>
+                            aria-label="Try a new vibe"><i class="fas fa-redo"></i> Try a New Vibe</button>
+                        <button type="button" class="action-btn secondary-btn" id="browse-all-btn"
+                            aria-label="Browse all moods"><i class="fas fa-list"></i> Browse All Moods</button>
                     </div>
                 </div>
             </form>

@@ -570,8 +570,49 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     document.querySelectorAll('.platform-card.selected').forEach(c => c.classList.remove('selected'));
     currentResultsCache = [];
     if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
+    const feedbackLoop = document.getElementById('feedback-loop');
+    if (feedbackLoop) feedbackLoop.style.display = 'none';
     goToStep(0);
 });
+
+// Browse All Moods button
+const browseAllBtn = document.getElementById('browse-all-btn');
+if (browseAllBtn) {
+    browseAllBtn.addEventListener('click', () => {
+        goToStep(0);
+    });
+}
+
+// Update vibe button and add click handler
+function updateVibeButton() {
+    const vibeText = document.getElementById('vibe-text');
+    if (vibeText && selections.mood) {
+        vibeText.textContent = selections.mood;
+    }
+}
+
+// Show feedback loop after results load
+function showFeedbackLoop() {
+    const feedbackLoop = document.getElementById('feedback-loop');
+    if (feedbackLoop) {
+        feedbackLoop.style.display = 'block';
+    }
+    
+    // Add feedback button listeners
+    const feedbackBtns = document.querySelectorAll('.feedback-btn');
+    feedbackBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const feedback = btn.dataset.feedback;
+            // Remove previous selection
+            feedbackBtns.forEach(b => b.classList.remove('selected'));
+            // Mark current as selected
+            btn.classList.add('selected');
+            
+            // Optional: Store feedback (could send to analytics/server)
+            console.log(`User feedback: ${feedback}`);
+        });
+    });
+}
 
 // ========================================
 // Fetch & Render Results (Updated with Summary Logic)
@@ -649,7 +690,7 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     if (isSurpriseMode) {
         summaryHTML = `
             <h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>
-            <p class="summary-tagline">We chose a <strong>${selections.mood}</strong> vibe for you across your available platforms.</p>
+            <p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across your streaming apps</p>
         `;
     } else {
         const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
@@ -664,10 +705,10 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
             ? `<span class="summary-item"><i class="fas fa-tv"></i> <strong>Platforms:</strong> ${platformNames}</span>`
             : '';
 
-        // FIX: The summary text now correctly uses 'resultCount'
+        // FIX: Improved summary copy - more engaging
         summaryHTML = `
             <h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>
-            <p class="summary-tagline">Found ${resultCount} potential matches for:</p>
+            <p class="summary-tagline">${resultCount} films selected for your <strong>${selections.mood}</strong> vibe</p>
             <div class="summary-details">
                 ${moodText}
                 ${timeText}
@@ -678,6 +719,8 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     }
 
     resultsSummaryEl.innerHTML = summaryHTML;
+    updateVibeButton();
+    showFeedbackLoop();
 }
 
 function displayMovies(movies, container) {
