@@ -722,16 +722,16 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
         titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
         
         // Build platform options dynamically
-        let platformOptions = '<option value="default">Default</option>';
+        let platformOptions = '<option value="default">All Platforms</option>';
         Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
             platformOptions += `<option value="platform-${id}">${name}</option>`;
         });
         
         summaryHTML = `<p class="summary-tagline">${displayCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
         <div class="sort-controls">
-            <label for="sort-by-platform">Sort by:</label>
+            <label for="sort-by-platform">Sort by platform:</label>
             <select id="sort-by-platform" class="sort-select">
-                <option value="default">Default</option>
+                <option value="default">All Platforms</option>
                 <option value="platform">Streaming Platform</option>
                 ${platformOptions}
             </select>
