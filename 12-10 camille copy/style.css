@@ -375,7 +375,7 @@ main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1r
 /* Staggered animation for option cards */
 .grid-options .option-card {
     animation: fadeInUp 0.5s ease forwards;
-    opacity: 1;
+    opacity: 0;
 }
 
 .grid-options .option-card:nth-child(1) { animation-delay: 0.05s; }
@@ -1124,7 +1124,7 @@ main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1r
     right: 0;
     bottom: 0;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.85) 100%);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
