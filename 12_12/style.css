@@ -1362,6 +1362,11 @@ main {
     min-width: 300px;
 }
 
+.favorites-grid .chatbot-movie-card {
+    flex: 0 0 300px;
+    min-width: 300px;
+}
+
 /* Custom scrollbar styling */
 .favorites-grid::-webkit-scrollbar {
     height: 8px;
