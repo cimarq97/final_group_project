@@ -725,7 +725,7 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
             platformOptions += `<option value="platform-${id}">${name}</option>`;
         });
         
-        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across all streaming sites</p>
+        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
         <div class="sort-controls">
             <label for="sort-by-platform">Sort by:</label>
             <select id="sort-by-platform" class="sort-select">
