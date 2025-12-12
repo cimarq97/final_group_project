@@ -714,7 +714,9 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     let titleHTML = '';
 
     // FIX: Use the actual count of results fetched from the API for the "potential matches" number
-    const resultCount = currentResultsCache.length;
+    const totalCount = currentResultsCache.length;
+    // Show up to 10 on screen, but display actual count
+    const displayCount = Math.min(totalCount, 10);
 
     if (isSurpriseMode) {
         titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
@@ -725,7 +727,7 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
             platformOptions += `<option value="platform-${id}">${name}</option>`;
         });
         
-        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
+        summaryHTML = `<p class="summary-tagline">${displayCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
         <div class="sort-controls">
             <label for="sort-by-platform">Sort by:</label>
             <select id="sort-by-platform" class="sort-select">
@@ -751,7 +753,7 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
 
         // FIX: Improved summary copy - more engaging
         summaryHTML = `
-            <p class="summary-tagline">${resultCount} films selected for your <strong>${selections.mood}</strong> vibe</p>
+            <p class="summary-tagline">${displayCount} films selected for your <strong>${selections.mood}</strong> vibe</p>
             <div class="summary-details">
                 ${moodText}
                 ${timeText}
@@ -780,8 +782,8 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
             if (sortBy === 'platform') {
                 // Sort movies by streaming platform
                 const sorted = currentResultsCache.slice().sort((a, b) => {
-                    const platformA = (a.platforms && a.platforms[0]) || '';
-                    const platformB = (b.platforms && b.platforms[0]) || '';
+                    const platformA = (a.providers && a.providers[0]?.name) || '';
+                    const platformB = (b.providers && b.providers[0]?.name) || '';
                     return platformA.localeCompare(platformB);
                 });
                 displayMovies(sorted, document.getElementById('results-area'));
@@ -793,9 +795,20 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
                     if (!movie.providers || movie.providers.length === 0) return false;
                     return movie.providers.some(provider => provider.name === platformName);
                 });
+                // Update count message when filtering
+                const displayCount = Math.min(filtered.length, 10);
+                const taglineEl = document.querySelector('.summary-tagline');
+                if (taglineEl) {
+                    taglineEl.innerHTML = `${displayCount} films for your <strong>${selections.mood}</strong> vibe on ${platformName}`;
+                }
                 displayMovies(filtered, document.getElementById('results-area'));
             } else {
                 // Default: shuffle display
+                const displayCount = Math.min(currentResultsCache.length, 10);
+                const taglineEl = document.querySelector('.summary-tagline');
+                if (taglineEl) {
+                    taglineEl.innerHTML = `${displayCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms`;
+                }
                 displayMovies(currentResultsCache, document.getElementById('results-area'));
             }
         });
