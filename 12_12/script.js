@@ -718,7 +718,22 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
 
     if (isSurpriseMode) {
         titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
-        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across your streaming apps</p>`;
+        
+        // Build platform options dynamically
+        let platformOptions = '<option value="default">Default</option>';
+        Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+            platformOptions += `<option value="platform-${id}">${name}</option>`;
+        });
+        
+        summaryHTML = `<p class="summary-tagline">${resultCount} films for your <strong>${selections.mood}</strong> vibe across all streaming sites</p>
+        <div class="sort-controls">
+            <label for="sort-by-platform">Sort by:</label>
+            <select id="sort-by-platform" class="sort-select">
+                <option value="default">Default</option>
+                <option value="platform">Streaming Platform</option>
+                ${platformOptions}
+            </select>
+        </div>`;
     } else {
         titleHTML = `<h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>`;
         
@@ -756,6 +771,35 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     resultsSummaryEl.innerHTML = summaryHTML;
     updateVibeButton();
     showFeedbackLoop();
+    
+    // Add event listener for sort dropdown
+    const sortDropdown = document.getElementById('sort-by-platform');
+    if (sortDropdown) {
+        sortDropdown.addEventListener('change', (e) => {
+            const sortBy = e.target.value;
+            if (sortBy === 'platform') {
+                // Sort movies by streaming platform
+                const sorted = currentResultsCache.slice().sort((a, b) => {
+                    const platformA = (a.platforms && a.platforms[0]) || '';
+                    const platformB = (b.platforms && b.platforms[0]) || '';
+                    return platformA.localeCompare(platformB);
+                });
+                displayMovies(sorted, document.getElementById('results-area'));
+            } else if (sortBy.startsWith('platform-')) {
+                // Filter by specific platform
+                const platformId = sortBy.split('-')[1];
+                const platformName = PLATFORM_NAMES[platformId];
+                const filtered = currentResultsCache.filter(movie => {
+                    if (!movie.providers || movie.providers.length === 0) return false;
+                    return movie.providers.some(provider => provider.name === platformName);
+                });
+                displayMovies(filtered, document.getElementById('results-area'));
+            } else {
+                // Default: shuffle display
+                displayMovies(currentResultsCache, document.getElementById('results-area'));
+            }
+        });
+    }
 }
 
 function displayMovies(movies, container) {

@@ -924,6 +924,41 @@ main {
     margin-bottom: 1.5rem;
 }
 
+.sort-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.sort-controls label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.sort-select {
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--accent-gold);
+    color: var(--text-main);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.sort-select:hover {
+    background-color: rgba(212, 175, 55, 0.15);
+    border-color: var(--accent-gold);
+}
+
+.sort-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
 .summary-details {
     display: flex;
     flex-wrap: wrap;
