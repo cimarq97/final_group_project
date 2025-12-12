@@ -827,9 +827,16 @@ function displayMovies(movies, container) {
     // but the summary still shows the total matches fetched (the fix above).
     const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
 
-    // Fetch additional data for each movie
+    // Fetch additional data for each movie and ensure platform info is set
     shuffled.forEach(async m => {
         const enrichedMovie = await enrichMovieData(m);
+        
+        // Ensure platformName and platformUrl are set (for consistent card display)
+        if (!enrichedMovie.platformName && enrichedMovie.providers && enrichedMovie.providers.length > 0) {
+            enrichedMovie.platformName = enrichedMovie.providers[0].name;
+            enrichedMovie.platformUrl = enrichedMovie.providers[0].url;
+        }
+        
         container.appendChild(createMovieCard(enrichedMovie));
     });
 }
@@ -1683,9 +1690,6 @@ function createMovieCard(movie) {
             <button class="action-btn-circle btn-share" data-title="${movie.title}" title="Share this movie">
                 <i class="fas fa-share-alt"></i>
             </button>
-            <a href="${imdbLink}" target="_blank" class="action-btn-circle btn-imdb ${movie.imdb_id ? '' : 'disabled'}" title="View on IMDB">
-                <i class="fas fa-external-link-alt"></i>
-            </a>
             ${isFav ? `<button class="action-btn-circle btn-remove" title="Remove from watchlist">
                 <i class="fas fa-trash-alt"></i>
             </button>` : ''}
@@ -1707,9 +1711,6 @@ function createMovieCard(movie) {
                 <button class="expanded-action-btn btn-favorite-expanded ${isFav ? 'is-active' : ''}" title="Add to watchlist">
                     ${isFav ? '<i class="fas fa-trash-alt"></i> Remove' : '<i class="far fa-heart"></i> Watchlist'}
                 </button>
-                ${movie.imdb_id ? `<a href="${imdbLink}" target="_blank" class="expanded-action-btn btn-imdb-expanded" title="View on IMDB">
-                    <i class="fas fa-external-link-alt"></i> IMDb
-                </a>` : ''}
                 <button class="expanded-action-btn btn-share-expanded" data-title="${movie.title}">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
@@ -1718,7 +1719,7 @@ function createMovieCard(movie) {
         <p class="click-hint">Click for details</p>
     `;
 
-    // 1. Expansion toggle
+    // 1. Expansion toggle - Cards start closed, clicking toggles expand/collapse like chatbot cards
     div.addEventListener('click', (e) => {
         // Only expand/collapse if clicking the card body, excluding all interactive elements
         if (e.target.closest('.action-btn-circle') || e.target.closest('.cast-member') || e.target.closest('.streaming-link')) {
@@ -1765,14 +1766,7 @@ function createMovieCard(movie) {
         });
     }
 
-    // 5. IMDb link (Prevents card expansion/collapse when clicking through)
-    div.querySelectorAll('.btn-imdb, .btn-imdb-expanded').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    });
-
-    // 6. FIX: Actor Click Handler (Opens IMDb page)
+    // 5. Cast member click handler (Opens IMDb page)
     div.querySelectorAll('.cast-member').forEach(actorEl => {
         actorEl.addEventListener('click', (e) => {
             e.stopPropagation();
