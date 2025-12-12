@@ -1914,24 +1914,45 @@ function renderCategorizedFavorites() {
         const grid = document.createElement('div');
         grid.className = 'favorites-grid';
 
-        movies.forEach(m => {
-            // For favorites, we manually reconstruct the providers property from the stored names 
-            // to include the URL for the card creation function, ensuring the card looks the same.
-            // Handle both string arrays and already-formatted objects
+        // Enrich movies with cast data
+        const promises = movies.map(m => {
+            // Reconstruct providers property first
             if (m.providers && Array.isArray(m.providers)) {
                 m.providers = m.providers.map(item => {
-                    // If it's already an object with name property, use it
                     if (typeof item === 'object' && item.name) {
                         return item;
                     }
-                    // If it's a string, convert to object
                     const name = String(item);
                     const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
                     return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
                 });
             }
-            grid.appendChild(createMovieCard(m));
+            // Enrich with cast data
+            return enrichMovieData(m);
         });
+        
+        Promise.all(promises).then(enrichedMovies => {
+            enrichedMovies.forEach(m => {
+                grid.appendChild(createMovieCard(m));
+            });
+        }).catch(err => {
+            console.error("Error enriching watchlist movies:", err);
+            movies.forEach(m => {
+                // Reconstruct providers property
+                if (m.providers && Array.isArray(m.providers)) {
+                    m.providers = m.providers.map(item => {
+                        if (typeof item === 'object' && item.name) {
+                            return item;
+                        }
+                        const name = String(item);
+                        const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                        return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
+                    });
+                }
+                grid.appendChild(createMovieCard(m));
+            });
+        });
+        
         section.appendChild(grid);
         container.appendChild(section);
     }
@@ -1988,7 +2009,8 @@ function setupWatchlistPlatformSort() {
             const grid = document.createElement('div');
             grid.className = 'favorites-grid';
             
-            filtered.forEach(m => {
+            // Enrich filtered movies with cast data
+            const promises = filtered.map(m => {
                 // Reconstruct providers property for consistent display
                 if (m.providers && Array.isArray(m.providers)) {
                     m.providers = m.providers.map(item => {
@@ -2000,7 +2022,20 @@ function setupWatchlistPlatformSort() {
                         return { name, url: pId ? PLATFORM_URLS[pId] : '#' };
                     });
                 }
-                grid.appendChild(createMovieCard(m));
+                // Enrich with cast data
+                return enrichMovieData(m);
+            });
+            
+            Promise.all(promises).then(enrichedMovies => {
+                enrichedMovies.forEach(m => {
+                    grid.appendChild(createMovieCard(m));
+                });
+            }).catch(err => {
+                console.error("Error enriching filtered watchlist movies:", err);
+                filtered.forEach(m => {
+                    // Fallback: create card without cast data
+                    grid.appendChild(createMovieCard(m));
+                });
             });
             
             container.appendChild(grid);
