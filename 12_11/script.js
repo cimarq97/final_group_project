@@ -11,6 +11,21 @@ const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 const CHATBOT_RULES = {
     // Define patterns and their corresponding genres/moods
     patterns: [
+        // Holiday Movies - Christmas (check FIRST before other patterns)
+        { keywords: ['christmas', 'xmas', 'festive', 'santa', 'winter holidays', 'christmas movies', 'noel', 'yuletide'], genres: [35, 10751, 18, 10749], mood: 'Christmas Movies', exclusive: true },
+        
+        // Holiday Movies - Halloween
+        { keywords: ['halloween', 'spooky', 'trick or treat', 'costume', 'horror movies', 'scary movies'], genres: [27, 53], mood: 'Halloween Movies', exclusive: true },
+        
+        // Holiday Movies - Thanksgiving
+        { keywords: ['thanksgiving', 'autumn', 'fall movies', 'gratitude'], genres: [35, 18, 10751], mood: 'Thanksgiving Movies', exclusive: true },
+        
+        // Holiday Movies - Valentine's Day
+        { keywords: ['valentine', 'valentines day', 'love movies', 'romantic movies', 'date movie'], genres: [10749, 35, 18], mood: 'Valentine Movies', exclusive: true },
+        
+        // Holiday Movies - New Year
+        { keywords: ['new year', 'new years eve', 'party movies', 'celebration movies'], genres: [35, 10749, 18], mood: 'New Year Movies', exclusive: true },
+        
         // Heartwarming/Uplifting - MORE SENSITIVE
         { keywords: ['heartwarming', 'heartfelt', 'uplifting', 'inspiring', 'feel-good', 'wholesome', 'heartwarmed', 'sweet', 'touching', 'warm', 'cozy'], genres: [10749, 35, 18], mood: 'Heartwarming' },
         
@@ -54,9 +69,35 @@ const CHATBOT_RULES = {
         { keywords: ['top rated', 'highest rated', 'best rated', 'best films', 'best movies', 'most rated', 'highly rated', 'rated', 'best of'], genres: [28, 35, 18, 878, 53, 27, 10749], mood: 'Top-Rated Films' },
         
         // Similar Movies
-        { keywords: ['similar to', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like', 'like this', 'like that'], genres: [], mood: 'Similar Movies', isSimilarSearch: true }
+        { keywords: ['similar to', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like', 'like this', 'like that'], genres: [], mood: 'Similar Movies', isSimilarSearch: true },
     ]
 };
+
+// TEST: Verify Christmas pattern is in the array
+console.log('CHATBOT_RULES patterns count:', CHATBOT_RULES.patterns.length);
+console.log('First pattern:', CHATBOT_RULES.patterns[0].mood, 'exclusive:', CHATBOT_RULES.patterns[0].exclusive);
+const christmasPattern = CHATBOT_RULES.patterns.find(p => p.mood === 'Christmas Movies');
+console.log('Christmas pattern found:', christmasPattern);
+if (christmasPattern) {
+    console.log('Christmas keywords:', christmasPattern.keywords);
+    console.log('Christmas exclusive:', christmasPattern.exclusive);
+    console.log('Test: "christmas" includes "christmas"?', 'christmas'.includes('christmas'));
+}
+
+// TEST FUNCTION: Test Christmas pattern matching with exclusive logic
+function testChristmasPattern() {
+    const testMessages = ['christmas', 'christmas movies', 'show me christmas', 'i want xmas films', 'halloween movies', 'thanksgiving', 'i love romantic movies', 'christmas and romantic'];
+    console.log('=== TESTING EXCLUSIVE PATTERN MATCHING ===');
+    for (const msg of testMessages) {
+        const result = detectMoodFromUserInput(msg);
+        console.log(`"${msg}" -> mood: "${result.mood}", genres: ${result.genres}, exclusive: ${CHATBOT_RULES.patterns.find(p => p.mood === result.mood)?.exclusive || false}`);
+    }
+}
+// Call test on page load
+window.addEventListener('load', () => {
+    console.log('Page loaded, running exclusive pattern test...');
+    testChristmasPattern();
+});
 
 const MOOD_CONFIG = {
     cozy: { genres: [35, 10749], sort: "popularity.desc" },
@@ -324,6 +365,9 @@ window.addEventListener('popstate', (e) => {
 // ========================================
 // View Navigation Logic (Unchanged)
 // ========================================
+// Track if AI chat has been initialized
+let aiChatInitialized = false;
+
 function switchView(view) {
     viewQuiz.classList.remove('active');
     viewAI.classList.remove('active');
@@ -338,6 +382,13 @@ function switchView(view) {
     } else if (view === 'ai') {
         viewAI.classList.add('active');
         navAI.classList.add('active');
+        
+        // Show greeting on first visit to AI chat
+        if (!aiChatInitialized) {
+            aiChatInitialized = true;
+            aiMessages.innerHTML = ''; // Clear any existing messages
+            addMessageToChat('assistant', '👋 Hi! I\'m StreamFinder. What kind of movie or show are you in the mood for?');
+        }
     } else {
         viewFavs.classList.add('active');
         navFavs.classList.add('active');
@@ -920,6 +971,7 @@ const aiResults = document.getElementById('ai-results');
 // Detect mood and genres from user input
 function detectMoodFromUserInput(userMessage) {
     const lowerMessage = userMessage.toLowerCase();
+    console.log('Detecting mood for:', lowerMessage); // DEBUG
     
     // Detect if user wants TV shows or movies
     const tvKeywords = ['tv show', 'tv series', 'series', 'show', 'binge', 'episodes', 'season'];
@@ -928,7 +980,84 @@ function detectMoodFromUserInput(userMessage) {
     let contentType = 'movie'; // Default to movie
     let isShowRequest = false;
     
-    // Check for TV show indicators first
+    // FIRST: Check for EXCLUSIVE patterns (holidays, similar movies, etc.)
+    // These return immediately without checking other patterns
+    for (const rule of CHATBOT_RULES.patterns) {
+        if (rule.exclusive) {
+            for (const keyword of rule.keywords) {
+                if (lowerMessage.includes(keyword)) {
+                    console.log('Matched EXCLUSIVE keyword:', keyword, 'for mood:', rule.mood); // DEBUG
+                    
+                    // Check for TV/movie indicators
+                    for (const tvKeyword of tvKeywords) {
+                        if (lowerMessage.includes(tvKeyword)) {
+                            contentType = 'tv';
+                            isShowRequest = true;
+                            break;
+                        }
+                    }
+                    
+                    for (const movieKeyword of movieKeywords) {
+                        if (lowerMessage.includes(movieKeyword)) {
+                            contentType = 'movie';
+                            isShowRequest = false;
+                            break;
+                        }
+                    }
+                    
+                    console.log('Returning EXCLUSIVE mood:', rule.mood, 'genres:', rule.genres); // DEBUG
+                    return { 
+                        mood: rule.mood, 
+                        genres: rule.genres,
+                        matchedKeyword: keyword,
+                        contentType: contentType,
+                        isShowRequest: isShowRequest
+                    };
+                }
+            }
+        }
+    }
+    
+    // SECOND: Check non-exclusive patterns (regular moods)
+    // Return on first match
+    for (const rule of CHATBOT_RULES.patterns) {
+        if (!rule.exclusive) {
+            for (const keyword of rule.keywords) {
+                if (lowerMessage.includes(keyword)) {
+                    console.log('Matched keyword:', keyword, 'for mood:', rule.mood); // DEBUG
+                    
+                    // Check for TV/movie indicators
+                    for (const tvKeyword of tvKeywords) {
+                        if (lowerMessage.includes(tvKeyword)) {
+                            contentType = 'tv';
+                            isShowRequest = true;
+                            break;
+                        }
+                    }
+                    
+                    for (const movieKeyword of movieKeywords) {
+                        if (lowerMessage.includes(movieKeyword)) {
+                            contentType = 'movie';
+                            isShowRequest = false;
+                            break;
+                        }
+                    }
+                    
+                    console.log('Returning mood:', rule.mood, 'genres:', rule.genres); // DEBUG
+                    return { 
+                        mood: rule.mood, 
+                        genres: rule.genres,
+                        matchedKeyword: keyword,
+                        contentType: contentType,
+                        isShowRequest: isShowRequest
+                    };
+                }
+            }
+        }
+    }
+    
+    // Default to broad search if no pattern matches
+    // Still check for TV/movie indicators for the default case
     for (const keyword of tvKeywords) {
         if (lowerMessage.includes(keyword)) {
             contentType = 'tv';
@@ -937,7 +1066,6 @@ function detectMoodFromUserInput(userMessage) {
         }
     }
     
-    // Check for explicit movie request (overrides TV if both mentioned)
     for (const keyword of movieKeywords) {
         if (lowerMessage.includes(keyword)) {
             contentType = 'movie';
@@ -946,22 +1074,6 @@ function detectMoodFromUserInput(userMessage) {
         }
     }
     
-    // Check each rule pattern for mood
-    for (const rule of CHATBOT_RULES.patterns) {
-        for (const keyword of rule.keywords) {
-            if (lowerMessage.includes(keyword)) {
-                return { 
-                    mood: rule.mood, 
-                    genres: rule.genres,
-                    matchedKeyword: keyword,
-                    contentType: contentType,
-                    isShowRequest: isShowRequest
-                };
-            }
-        }
-    }
-    
-    // Default to broad search if no pattern matches
     return { 
         mood: 'Movie Enthusiast', 
         genres: [28, 35, 18],  // Mix of action, comedy, drama
@@ -1120,6 +1232,55 @@ function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
             "🔍 Finding movies similar to what you mentioned...",
             "✨ Here are some great movies in the same style!",
             "🎯 Based on your preference, check these out!"
+        ],
+        'Christmas Movies': isShowRequest ? [
+            "🎄 Here are some festive Christmas TV shows!",
+            "🎅 Deck the halls with these holiday series!",
+            "❄️ Get in the holiday spirit with these shows!",
+            "🎁 Perfect for your holiday binge! Check these out!",
+            "⛄ Cozy Christmas entertainment coming your way!"
+        ] : [
+            "🎄 Here are some festive Christmas movies!",
+            "🎅 Deck the halls with these holiday films!",
+            "❄️ Get in the holiday spirit with these films!",
+            "🎁 Perfect Christmas movie picks for you!",
+            "⛄ Cozy Christmas entertainment you'll love!"
+        ],
+        'Halloween Movies': isShowRequest ? [
+            "🎃 Here are some spooky Halloween shows!",
+            "👻 Perfect for a scary night! Check these out!",
+            "🕷️ Get spooked with these thrilling series!"
+        ] : [
+            "🎃 Here are some spooky Halloween movies!",
+            "👻 Perfect for a scary night! Check these out!",
+            "🕷️ Get spooked with these thrilling films!"
+        ],
+        'Thanksgiving Movies': isShowRequest ? [
+            "🍂 Here are some cozy Thanksgiving shows!",
+            "🦃 Perfect for the holiday season! Check these out!",
+            "🥧 Gather around for these warm family shows!"
+        ] : [
+            "🍂 Here are some cozy Thanksgiving movies!",
+            "🦃 Perfect for the holiday season! Check these out!",
+            "🥧 Gather around for these warm family films!"
+        ],
+        'Valentine Movies': isShowRequest ? [
+            "💕 Here are some romantic Valentine's Day shows!",
+            "💑 Perfect for date night! Check these out!",
+            "❤️ Feel the love with these beautiful series!"
+        ] : [
+            "💕 Here are some romantic Valentine's Day movies!",
+            "💑 Perfect for date night! Check these out!",
+            "❤️ Feel the love with these beautiful films!"
+        ],
+        'New Year Movies': isShowRequest ? [
+            "🎆 Here are some celebratory New Year shows!",
+            "🎉 Perfect for ringing in the new year! Check these out!",
+            "✨ Start your year right with these amazing series!"
+        ] : [
+            "🎆 Here are some celebratory New Year movies!",
+            "🎉 Perfect for ringing in the new year! Check these out!",
+            "✨ Start your year right with these amazing films!"
         ]
     };
     
@@ -1198,6 +1359,7 @@ if (aiInput) {
 
 // Search TMDB for movies based on detected genres
 async function searchMoviesByRules(genreIds, mood) {
+    console.log('searchMoviesByRules called with genres:', genreIds, 'mood:', mood); // DEBUG
     aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for perfect movies...</div>';
     
     try {
@@ -1216,6 +1378,7 @@ async function searchMoviesByRules(genreIds, mood) {
         url.searchParams.append('page', '1');
         url.searchParams.append('include_adult', 'false');
         
+        console.log('TMDB URL:', url.toString()); // DEBUG
         const res = await fetch(url, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
         });
