@@ -562,15 +562,6 @@ document.getElementById('quiz-form').addEventListener('submit', (e) => {
     fetchAndDisplayMovies(false);
 });
 
-// Sort Results Handler
-const sortSelect = document.getElementById('sort-select');
-if (sortSelect) {
-    sortSelect.addEventListener('change', (e) => {
-        const sortType = e.target.value;
-        sortResults(sortType);
-    });
-}
-
 document.getElementById('restart-btn').addEventListener('click', () => {
     selections = { mood: null, time: null, genres: [], platforms: [] };
     document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
@@ -756,31 +747,6 @@ async function enrichMovieData(movie) {
 // ========================================
 // Sort Results Function
 // ========================================
-function sortResults(sortType) {
-    if (!currentResultsCache || currentResultsCache.length === 0) return;
-
-    let sortedMovies = [...currentResultsCache];
-
-    switch (sortType) {
-        case 'rating':
-            sortedMovies.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
-            break;
-        case 'newest':
-            sortedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
-            break;
-        case 'oldest':
-            sortedMovies.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-            break;
-        case 'popular':
-        default:
-            sortedMovies.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-    }
-
-    // Update the cache and re-render
-    currentResultsCache = sortedMovies;
-    const container = document.getElementById('results-area');
-    displayMovies(currentResultsCache, container);
-}
 
 // ========================================
 // Surprise Me - Categorization by Platform & Global Share (UPDATED for new provider structure)
@@ -791,27 +757,6 @@ async function displaySurpriseMovies(movies, container) {
         container.innerHTML = '<div class="empty-state">No surprises found on your selected platforms.</div>';
         return;
     }
-
-    const shareSection = document.createElement('div');
-    shareSection.className = 'share-section';
-    shareSection.innerHTML = `
-        <div class="share-header">
-            <h3>Love the surprise? Share them!</h3>
-            <div class="share-buttons">
-                <button class="share-btn share-copy" title="Copy link">
-                    <i class="fas fa-link"></i> Copy Link
-                </button>
-                <button class="share-btn share-social" title="Share">
-                    <i class="fas fa-share-alt"></i> Share
-                </button>
-            </div>
-        </div>
-    `;
-    container.appendChild(shareSection);
-
-    shareSection.querySelector('.share-copy').addEventListener('click', copyToClipboard);
-    shareSection.querySelector('.share-social').addEventListener('click', shareViaURL);
-
 
     const groups = {};
     const promises = movies.sort(() => 0.5 - Math.random()).slice(0, 15).map(m => enrichMovieData(m));
@@ -855,7 +800,7 @@ async function displaySurpriseMovies(movies, container) {
         const grid = document.createElement('div');
         grid.className = 'results-grid';
 
-        group.movies.forEach(m => grid.appendChild(createMovieCard(m)));
+        group.movies.forEach(m => grid.appendChild(createChatbotCard(m)));
         section.appendChild(grid);
         container.appendChild(section);
     }
