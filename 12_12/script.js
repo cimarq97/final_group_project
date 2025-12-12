@@ -1935,6 +1935,77 @@ function renderCategorizedFavorites() {
         section.appendChild(grid);
         container.appendChild(section);
     }
+    
+    // Populate and setup sort by platform dropdown
+    setupWatchlistPlatformSort();
+}
+
+// Function to setup watchlist sort by platform dropdown
+function setupWatchlistPlatformSort() {
+    const sortDropdown = document.getElementById('watchlist-sort-platform');
+    if (!sortDropdown) return;
+    
+    // Build platform options dynamically
+    let platformOptions = '<option value="default">All Platforms</option>';
+    Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+        platformOptions += `<option value="platform-${id}">${name}</option>`;
+    });
+    
+    sortDropdown.innerHTML = platformOptions;
+    
+    // Add event listener for sorting
+    sortDropdown.addEventListener('change', (e) => {
+        const sortBy = e.target.value;
+        const container = document.getElementById('favorites-container');
+        
+        if (sortBy === 'default') {
+            // Show all favorites (re-render with normal grouping)
+            renderCategorizedFavorites();
+        } else if (sortBy.startsWith('platform-')) {
+            // Filter by specific platform
+            const platformId = sortBy.split('-')[1];
+            const platformName = PLATFORM_NAMES[platformId];
+            
+            // Filter favorites by platform
+            const filtered = favorites.filter(movie => {
+                if (!movie.providers || movie.providers.length === 0) return false;
+                return movie.providers.some(provider => {
+                    if (typeof provider === 'object' && provider.name) {
+                        return provider.name === platformName;
+                    }
+                    return String(provider) === platformName;
+                });
+            });
+            
+            // Display filtered favorites
+            container.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">No movies found on ${platformName}.</div>`;
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'favorites-grid';
+            
+            filtered.forEach(m => {
+                // Reconstruct providers property for consistent display
+                if (m.providers && Array.isArray(m.providers)) {
+                    m.providers = m.providers.map(item => {
+                        if (typeof item === 'object' && item.name) {
+                            return item;
+                        }
+                        const name = String(item);
+                        const pId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                        return { name, url: pId ? PLATFORM_URLS[pId] : '#' };
+                    });
+                }
+                grid.appendChild(createMovieCard(m));
+            });
+            
+            container.appendChild(grid);
+        }
+    });
 }
 
 // FIX: Function to populate the filter dropdowns with ALL platforms
