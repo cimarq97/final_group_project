@@ -936,7 +936,8 @@ main {
 
 .sort-controls label {
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .sort-select {
