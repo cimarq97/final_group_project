@@ -608,10 +608,48 @@ function showFeedbackLoop() {
             // Mark current as selected
             btn.classList.add('selected');
             
-            // Optional: Store feedback (could send to analytics/server)
-            console.log(`User feedback: ${feedback}`);
+            // Handle feedback actions
+            if (feedback === 'loved') {
+                // Trigger confetti
+                triggerConfetti();
+                console.log(`User feedback: ${feedback}`);
+            } else if (feedback === 'nope') {
+                // Reload with new vibe - stay on surprise page
+                setTimeout(() => {
+                    // Select a new random mood
+                    const moods = Object.keys(MOOD_CONFIG);
+                    selections.mood = moods[Math.floor(Math.random() * moods.length)];
+                    // Fetch and display new movies with the new vibe
+                    fetchAndDisplayMovies(true);
+                }, 500);
+            }
         });
     });
+}
+
+// Function to trigger confetti effect
+function triggerConfetti() {
+    const confettiSettings = {
+        target: 'confetti-canvas',
+        max: 200,
+        size: 1,
+        animate: true,
+        props: ['circle', 'square', 'triangle', 'line'],
+        colors: [[212, 175, 55], [25, 118, 210], [255, 215, 0], [255, 165, 0]],
+        clock: 25,
+        interval: null,
+        rotate: true,
+        start_from_edge: false,
+        respawn: true
+    };
+    
+    const confetti = new ConfettiGenerator(confettiSettings);
+    confetti.render();
+    
+    // Stop confetti after 3 seconds
+    setTimeout(() => {
+        confetti.clear();
+    }, 3000);
 }
 
 // ========================================
