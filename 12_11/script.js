@@ -13,46 +13,46 @@ const CHATBOT_RULES = {
     patterns: [
         // Heartwarming/Uplifting - MORE SENSITIVE
         { keywords: ['heartwarming', 'heartfelt', 'uplifting', 'inspiring', 'feel-good', 'wholesome', 'heartwarmed', 'sweet', 'touching', 'warm', 'cozy'], genres: [10749, 35, 18], mood: 'Heartwarming' },
-        
+
         // Action
         { keywords: ['action', 'fight', 'adrenaline', 'explosive', 'thrill', 'battle', 'combat', 'chase'], genres: [28, 53], mood: 'Action Lover' },
-        
+
         // Comedy
         { keywords: ['comedy', 'funny', 'laugh', 'humor', 'hilarious', 'comedic', 'quirky', 'witty'], genres: [35], mood: 'Comedy Fan' },
-        
+
         // Romantic - MORE SPECIFIC
         { keywords: ['romantic', 'romance', 'love', 'couple', 'date night', 'dating', 'sweet love', 'relationship'], genres: [10749], mood: 'Romantic' },
-        
+
         // Horror
         { keywords: ['horror', 'scary', 'terror', 'spooky', 'frightening', 'creepy', 'horror movie', 'supernatural'], genres: [27], mood: 'Horror Fan' },
-        
+
         // Drama - MORE SPECIFIC
         { keywords: ['drama', 'emotional', 'touching', 'serious', 'intense', 'powerful', 'moving', 'deep'], genres: [18], mood: 'Drama Lover' },
-        
+
         // Sci-Fi
         { keywords: ['sci-fi', 'scifi', 'science fiction', 'futuristic', 'space', 'aliens', 'dystopian', 'cyberpunk'], genres: [878], mood: 'Sci-Fi Fan' },
-        
+
         // Adventure
         { keywords: ['adventure', 'explore', 'journey', 'quest', 'epic', 'action adventure', 'travel'], genres: [12], mood: 'Adventurer' },
-        
+
         // Animation
         { keywords: ['animation', 'animated', 'cartoon', 'anime', 'hand-drawn', 'stop-motion'], genres: [16], mood: 'Animation Fan' },
-        
+
         // Documentary
         { keywords: ['documentary', 'docuseries', 'true story', 'real', 'biography', 'real-life', 'non-fiction'], genres: [99], mood: 'Documentary Watcher' },
-        
+
         // Mystery/Thriller
         { keywords: ['mystery', 'thriller', 'detective', 'suspense', 'whodunit', 'mysterious', 'suspenseful', 'crime'], genres: [9648, 53], mood: 'Mystery Lover' },
-        
+
         // Family
         { keywords: ['family', 'kids', 'children', 'family-friendly', 'fun for all', 'parents', 'kids movie'], genres: [10751], mood: 'Family Watcher' },
-        
+
         // Historical
         { keywords: ['historical', 'history', 'period', 'based on true', 'war', 'historical drama', 'period piece'], genres: [10752, 36], mood: 'History Enthusiast' },
-        
+
         // Top-Rated Films
         { keywords: ['top rated', 'highest rated', 'best rated', 'best films', 'best movies', 'most rated', 'highly rated', 'rated', 'best of'], genres: [28, 35, 18, 878, 53, 27, 10749], mood: 'Top-Rated Films' },
-        
+
         // Similar Movies
         { keywords: ['similar to', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like', 'like this', 'like that'], genres: [], mood: 'Similar Movies', isSimilarSearch: true }
     ]
@@ -68,16 +68,16 @@ const MOOD_CONFIG = {
 };
 
 const RUNTIME_CONFIG = {
-    short: { lte: 30 }, 
+    short: { lte: 30 },
     medium: { gte: 30, lte: 60 },
-    long: { gte: 80, lte: 160 }, 
+    long: { gte: 80, lte: 160 },
     binge: null
 };
 
 // --- START: Platform and Genre Config Updates ---
 const PLATFORM_NAMES = {
-    8: "Netflix", 15: "Hulu", 1899: "Max", 337: "Disney+", 9: "Prime Video", 
-    531: "Paramount+", 384: "MGM+", 257: "Fubo TV", 350: "Apple TV+", 
+    8: "Netflix", 15: "Hulu", 1899: "Max", 337: "Disney+", 9: "Prime Video",
+    531: "Paramount+", 384: "MGM+", 257: "Fubo TV", 350: "Apple TV+",
     386: "Peacock", 1796: "Crunchyroll", 283: "Crackle"
 };
 
@@ -87,7 +87,7 @@ const PLATFORM_URLS = {
     15: "https://www.hulu.com/",
     1899: "https://www.max.com/",
     337: "https://www.disneyplus.com/",
-    9: "https://www.amazon.com/Prime-Video/", 
+    9: "https://www.amazon.com/Prime-Video/",
     531: "https://www.paramountplus.com/",
     384: "https://www.mgmplus.com/",
     257: "https://www.fubo.tv/",
@@ -191,15 +191,15 @@ const MOVIE_FACTS = [
 // State & Elements
 // ========================================
 let currentStep = 0;
-let selections = { mood: null, time: null, genres: [], platforms: [] }; 
+let selections = { mood: null, time: null, genres: [], platforms: [] };
 // FIX: Safely load and ensure 'favorites' is an array. If corrupted, reset it.
 let favorites;
 try {
     const savedFavs = JSON.parse(localStorage.getItem('streamFinderFavs'));
     favorites = Array.isArray(savedFavs) ? savedFavs : [];
     if (savedFavs && !Array.isArray(savedFavs)) {
-         console.warn("Watchlist data corrupted, resetting.");
-         localStorage.removeItem('streamFinderFavs');
+        console.warn("Watchlist data corrupted, resetting.");
+        localStorage.removeItem('streamFinderFavs');
     }
 } catch (e) {
     console.error("Error parsing watchlist data, resetting:", e);
@@ -221,7 +221,7 @@ const viewAI = document.getElementById('view-ai');
 const viewFavs = document.getElementById('view-favorites');
 const favCountEl = document.getElementById('fav-count');
 const logoHome = document.getElementById('logo-home');
-const resultsSummaryEl = document.getElementById('results-summary'); 
+const resultsSummaryEl = document.getElementById('results-summary');
 
 
 // ========================================
@@ -287,12 +287,12 @@ function shareMovie(movie) {
 function initializeMovieFact() {
     const movieFactEl = document.getElementById('movie-fact');
     const factTextEl = document.getElementById('fact-text');
-    
+
     if (!movieFactEl) return;
-    
+
     const randomFact = MOVIE_FACTS[Math.floor(Math.random() * MOVIE_FACTS.length)];
     factTextEl.textContent = randomFact;
-    
+
     setTimeout(() => {
         movieFactEl.classList.add('fade-out');
         setTimeout(() => {
@@ -331,10 +331,10 @@ function switchView(view) {
     navQuiz.classList.remove('active');
     navAI.classList.remove('active');
     navFavs.classList.remove('active');
-    
+
     if (view === 'quiz') {
-        viewQuiz.classList.add('active'); 
-        navQuiz.classList.add('active'); 
+        viewQuiz.classList.add('active');
+        navQuiz.classList.add('active');
     } else if (view === 'ai') {
         viewAI.classList.add('active');
         navAI.classList.add('active');
@@ -392,7 +392,7 @@ logoHome.addEventListener('click', () => {
 });
 
 function goToStep(index, addToHistory = true) {
-    if (index < 0 || index > 5) return; 
+    if (index < 0 || index > 5) return;
 
     const activeStep = document.querySelector('.quiz-step.active');
     const nextStepEl = document.getElementById(`step-${index}`);
@@ -404,7 +404,7 @@ function goToStep(index, addToHistory = true) {
         setTimeout(() => {
             activeStep.classList.remove('fading-out');
             activeStep.style.display = 'none';
-            
+
             if (nextStepEl) {
                 nextStepEl.style.display = 'flex';
                 setTimeout(() => {
@@ -415,7 +415,7 @@ function goToStep(index, addToHistory = true) {
     } else {
         nextStepEl.classList.add('active');
     }
-    
+
     currentStep = index;
     if (addToHistory) {
         pushHistory(index);
@@ -444,18 +444,18 @@ document.querySelectorAll('.back-btn').forEach(btn => {
 // ========================================
 function setupSingleSelection(parentId, key) {
     const parent = document.getElementById(parentId);
-    if(!parent) return;
+    if (!parent) return;
     const btns = parent.querySelectorAll('.option-card');
     const nextBtn = parent.closest('.quiz-step').querySelector('.next-btn');
 
     btns.forEach(btn => {
         btn.addEventListener('click', () => {
             // Check to prevent this from affecting platform cards, which are labels
-            if (btn.tagName === 'BUTTON') { 
+            if (btn.tagName === 'BUTTON') {
                 btns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selections[key] = btn.dataset.value;
-                if(nextBtn) nextBtn.disabled = false;
+                if (nextBtn) nextBtn.disabled = false;
             }
         });
     });
@@ -488,18 +488,18 @@ function initializeSelectAllButton() {
     const selectAllBtn = document.getElementById('select-all-platforms');
     const platformCheckboxes = document.querySelectorAll('input[name="platform"]');
     const platformCards = document.querySelectorAll('.platform-card');
-    
+
     if (!selectAllBtn) return;
-    
+
     selectAllBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         const allChecked = Array.from(platformCheckboxes).every(cb => cb.checked);
-        
+
         platformCheckboxes.forEach(checkbox => {
             checkbox.checked = !allChecked;
         });
-        
+
         // Update the visual state (class on the label)
         platformCards.forEach(card => {
             const checkbox = card.querySelector('input[type="checkbox"]');
@@ -509,7 +509,7 @@ function initializeSelectAllButton() {
                 card.classList.remove('selected');
             }
         });
-        
+
         if (allChecked) {
             selectAllBtn.innerHTML = '<i class="fas fa-check-double"></i> Select All';
         } else {
@@ -522,10 +522,10 @@ function initializeSelectAllButton() {
         card.addEventListener('click', (e) => {
             // Check if the click target is NOT the checkbox itself (which flips state before the event listener runs)
             if (e.target.tagName !== 'INPUT') {
-                 // Prevent default behavior to manage selection state manually
-                 e.preventDefault();
-                 const checkbox = card.querySelector('input[type="checkbox"]');
-                 checkbox.checked = !checkbox.checked;
+                // Prevent default behavior to manage selection state manually
+                e.preventDefault();
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
             }
             // Toggle the 'selected' class based on the checkbox's final state
             if (card.querySelector('input[type="checkbox"]').checked) {
@@ -545,7 +545,7 @@ document.getElementById('surprise-btn').addEventListener('click', () => {
     selections.mood = moods[Math.floor(Math.random() * moods.length)];
     selections.time = null;
     selections.genres = [];
-    selections.platforms = Object.keys(PLATFORM_NAMES).map(id => id.toString()); 
+    selections.platforms = Object.keys(PLATFORM_NAMES).map(id => id.toString());
 
     goToStep(5);
     fetchAndDisplayMovies(true);
@@ -578,7 +578,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
     document.querySelectorAll('.platform-card.selected').forEach(c => c.classList.remove('selected'));
     currentResultsCache = [];
-    if (resultsSummaryEl) resultsSummaryEl.innerHTML = ''; 
+    if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
     goToStep(0);
 });
 
@@ -588,21 +588,21 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 async function fetchAndDisplayMovies(isSurpriseMode = false) {
     const container = document.getElementById('results-area');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching archives...</div>';
-    if (resultsSummaryEl) resultsSummaryEl.innerHTML = ''; 
+    if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
 
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
         url.searchParams.append("watch_region", "US");
-        
+
         if (selections.platforms.length) {
             url.searchParams.append("with_watch_providers", selections.platforms.join("|"));
         }
-        
+
         let genreStr = "";
         let sortStr = "popularity.desc";
 
         // --- Get Genres for Query and Summary ---
-        let selectedGenreNames = []; 
+        let selectedGenreNames = [];
         let finalGenreIds = [];
 
         if (selections.genres.length > 0) {
@@ -611,7 +611,7 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
             finalGenreIds = MOOD_CONFIG[selections.mood].genres;
             sortStr = MOOD_CONFIG[selections.mood].sort;
         }
-        
+
         genreStr = finalGenreIds.join(",");
         selectedGenreNames = finalGenreIds.map(id => GENRE_NAMES[id]).filter(Boolean);
         // ----------------------------------------
@@ -620,19 +620,19 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
         url.searchParams.append("sort_by", sortStr);
         url.searchParams.append("vote_count.gte", "50");
 
-        if(selections.time && RUNTIME_CONFIG[selections.time]) {
+        if (selections.time && RUNTIME_CONFIG[selections.time]) {
             const rt = RUNTIME_CONFIG[selections.time];
-            if(rt.gte) url.searchParams.append("with-runtime.gte", rt.gte);
-            if(rt.lte) url.searchParams.append("with-runtime.lte", rt.lte);
+            if (rt.gte) url.searchParams.append("with-runtime.gte", rt.gte);
+            if (rt.lte) url.searchParams.append("with-runtime.lte", rt.lte);
         }
 
         const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
         const data = await res.json();
-        
+
         currentResultsCache = data.results || [];
 
         // NEW: Render the summary for the user's choices
-        renderResultsSummary(isSurpriseMode, selectedGenreNames); 
+        renderResultsSummary(isSurpriseMode, selectedGenreNames);
 
         if (isSurpriseMode) {
             await displaySurpriseMovies(currentResultsCache, container);
@@ -640,7 +640,7 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
             displayMovies(currentResultsCache, container);
         }
 
-    } catch(e) {
+    } catch (e) {
         console.error("Fetch Error:", e);
         container.innerHTML = '<div class="empty-state">Error connecting to database.</div>';
         if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
@@ -651,10 +651,10 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
 function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     if (!resultsSummaryEl) return;
     let summaryHTML = '';
-    
+
     // FIX: Use the actual count of results fetched from the API for the "potential matches" number
     const resultCount = currentResultsCache.length;
-    
+
     if (isSurpriseMode) {
         summaryHTML = `
             <h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>
@@ -663,13 +663,13 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
     } else {
         const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
         const timeText = selections.time ? `<span class="summary-item"><i class="fas fa-clock"></i> <strong>Time:</strong> ${selections.time}</span>` : '';
-        
-        const genresText = selectedGenreNames.length > 0 
+
+        const genresText = selectedGenreNames.length > 0
             ? `<span class="summary-item"><i class="fas fa-mask"></i> <strong>Genres:</strong> ${selectedGenreNames.join(', ')}</span>`
             : '';
-            
+
         const platformNames = selections.platforms.map(id => PLATFORM_NAMES[id]).filter(Boolean).join(', ');
-        const platformsText = selections.platforms.length > 0 
+        const platformsText = selections.platforms.length > 0
             ? `<span class="summary-item"><i class="fas fa-tv"></i> <strong>Platforms:</strong> ${platformNames}</span>`
             : '';
 
@@ -685,22 +685,22 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
             </div>
         `;
     }
-    
+
     resultsSummaryEl.innerHTML = summaryHTML;
 }
 
 function displayMovies(movies, container) {
     container.innerHTML = "";
-    if(!movies.length) {
+    if (!movies.length) {
         container.innerHTML = '<div class="empty-state">No matches found. Try different filters.</div>';
         return;
     }
-    
+
     // Shuffle and slice for normal display
     // NOTE: This is where the list is limited to 10 for display, 
     // but the summary still shows the total matches fetched (the fix above).
     const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
-    
+
     // Fetch additional data for each movie
     shuffled.forEach(async m => {
         const enrichedMovie = await enrichMovieData(m);
@@ -717,37 +717,37 @@ async function enrichMovieData(movie) {
         const creditsUrl = `${TMDB_BASE_URL}/movie/${movie.id}/credits`;
         const creditsRes = await fetch(creditsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
         const creditsData = await creditsRes.json();
-        
+
         // Fetch external IDs for the movie
         const externalIdsUrl = `${TMDB_BASE_URL}/movie/${movie.id}/external_ids`;
         const externalIdsRes = await fetch(externalIdsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
         const externalIdsData = await externalIdsRes.json();
-        
+
         movie.cast = creditsData.cast ? creditsData.cast.slice(0, 5) : [];
-        
+
         // FIX: Fetch external ID for cast members (required for IMDb link)
         for (const actor of movie.cast) {
-             const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
-             const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
-             const personData = await personRes.json();
-             actor.imdb_id = personData.imdb_id;
+            const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
+            const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+            const personData = await personRes.json();
+            actor.imdb_id = personData.imdb_id;
         }
 
         // Fetch providers
         const providersData = await fetchWatchProviders(movie.id);
         const usProviders = providersData?.results?.US?.flatrate || [];
-        
+
         // Extract both name and URL for easy rendering and link functionality
         movie.providers = usProviders.map(p => {
             const name = PLATFORM_NAMES[p.provider_id];
-            const url = PLATFORM_URLS[p.provider_id] || '#'; 
+            const url = PLATFORM_URLS[p.provider_id] || '#';
             return name ? { name, url } : null;
         }).filter(Boolean);
 
         // Get IMDb ID
         movie.imdb_id = externalIdsData.imdb_id;
-        
-    } catch(e) {
+
+    } catch (e) {
         console.error("Error enriching movie data:", e);
     }
     return movie;
@@ -758,10 +758,10 @@ async function enrichMovieData(movie) {
 // ========================================
 function sortResults(sortType) {
     if (!currentResultsCache || currentResultsCache.length === 0) return;
-    
+
     let sortedMovies = [...currentResultsCache];
-    
-    switch(sortType) {
+
+    switch (sortType) {
         case 'rating':
             sortedMovies.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
             break;
@@ -775,7 +775,7 @@ function sortResults(sortType) {
         default:
             sortedMovies.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
     }
-    
+
     // Update the cache and re-render
     currentResultsCache = sortedMovies;
     const container = document.getElementById('results-area');
@@ -787,7 +787,7 @@ function sortResults(sortType) {
 // ========================================
 async function displaySurpriseMovies(movies, container) {
     container.innerHTML = "";
-    if(!movies.length) {
+    if (!movies.length) {
         container.innerHTML = '<div class="empty-state">No surprises found on your selected platforms.</div>';
         return;
     }
@@ -808,7 +808,7 @@ async function displaySurpriseMovies(movies, container) {
         </div>
     `;
     container.appendChild(shareSection);
-    
+
     shareSection.querySelector('.share-copy').addEventListener('click', copyToClipboard);
     shareSection.querySelector('.share-social').addEventListener('click', shareViaURL);
 
@@ -819,42 +819,42 @@ async function displaySurpriseMovies(movies, container) {
 
     enrichedMovies.forEach((movie) => {
         const rawProviders = movie.providers || [];
-        
+
         if (rawProviders.length > 0) {
             // Find the first provider object whose name is in the user's selected list (by name)
-            const selectedProvider = rawProviders.find(p => 
+            const selectedProvider = rawProviders.find(p =>
                 selections.platforms.some(id => PLATFORM_NAMES[id] === p.name)
             );
 
             if (selectedProvider) {
                 const platformKey = selectedProvider.name;
-                
+
                 if (!groups[platformKey]) {
                     groups[platformKey] = { name: platformKey, movies: [] };
                 }
-                
+
                 // Attach the selected provider name/URL object to the movie for card creation
                 // NOTE: This uses platformName/platformUrl to signify it's the *primary* platform for surprise mode grouping
-                movie.platformName = selectedProvider.name; 
-                movie.platformUrl = selectedProvider.url; 
+                movie.platformName = selectedProvider.name;
+                movie.platformUrl = selectedProvider.url;
                 groups[platformKey].movies.push(movie);
             }
         }
     });
 
     if (Object.keys(groups).length === 0) {
-         container.innerHTML = '<div class="empty-state">Could not verify streaming providers for the results.</div>';
-         return;
+        container.innerHTML = '<div class="empty-state">Could not verify streaming providers for the results.</div>';
+        return;
     }
 
     for (const group of Object.values(groups)) {
         const section = document.createElement('div');
         section.className = 'platform-section';
         section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
-        
+
         const grid = document.createElement('div');
         grid.className = 'results-grid';
-        
+
         group.movies.forEach(m => grid.appendChild(createMovieCard(m)));
         section.appendChild(grid);
         container.appendChild(section);
@@ -881,40 +881,40 @@ async function enrichTVShowData(show) {
         const creditsUrl = `${TMDB_BASE_URL}/tv/${show.id}/credits`;
         const creditsRes = await fetch(creditsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
         const creditsData = await creditsRes.json();
-        
+
         // Fetch external IDs for the TV show
         const externalIdsUrl = `${TMDB_BASE_URL}/tv/${show.id}/external_ids`;
         const externalIdsRes = await fetch(externalIdsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
         const externalIdsData = await externalIdsRes.json();
-        
+
         show.cast = creditsData.cast ? creditsData.cast.slice(0, 5) : [];
-        
+
         // Fetch external ID for cast members (required for IMDb link)
         for (const actor of show.cast) {
-             const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
-             const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
-             const personData = await personRes.json();
-             actor.imdb_id = personData.imdb_id;
+            const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
+            const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+            const personData = await personRes.json();
+            actor.imdb_id = personData.imdb_id;
         }
 
         // Fetch providers
         const providersData = await fetchTVWatchProviders(show.id);
         const usProviders = providersData?.results?.US?.flatrate || [];
-        
+
         // Extract both name and URL for easy rendering and link functionality
         show.providers = usProviders.map(p => {
             const name = PLATFORM_NAMES[p.provider_id];
-            const url = PLATFORM_URLS[p.provider_id] || '#'; 
+            const url = PLATFORM_URLS[p.provider_id] || '#';
             return name ? { name, url } : null;
         }).filter(Boolean);
 
         // Get IMDb ID
         show.imdb_id = externalIdsData.imdb_id;
-        
+
         // Convert TV show title field to title for compatibility
         show.title = show.name;
-        
-    } catch(e) {
+
+    } catch (e) {
         console.error("Error enriching TV show data:", e);
     }
     return show;
@@ -932,14 +932,14 @@ const aiResults = document.getElementById('ai-results');
 // Detect mood and genres from user input
 function detectMoodFromUserInput(userMessage) {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     // Detect if user wants TV shows or movies
     const tvKeywords = ['tv show', 'tv series', 'series', 'show', 'binge', 'episodes', 'season'];
     const movieKeywords = ['movie', 'film', 'watch a film'];
-    
+
     let contentType = 'movie'; // Default to movie
     let isShowRequest = false;
-    
+
     // Check for TV show indicators first
     for (const keyword of tvKeywords) {
         if (lowerMessage.includes(keyword)) {
@@ -948,7 +948,7 @@ function detectMoodFromUserInput(userMessage) {
             break;
         }
     }
-    
+
     // Check for explicit movie request (overrides TV if both mentioned)
     for (const keyword of movieKeywords) {
         if (lowerMessage.includes(keyword)) {
@@ -957,13 +957,13 @@ function detectMoodFromUserInput(userMessage) {
             break;
         }
     }
-    
+
     // Check each rule pattern for mood
     for (const rule of CHATBOT_RULES.patterns) {
         for (const keyword of rule.keywords) {
             if (lowerMessage.includes(keyword)) {
-                return { 
-                    mood: rule.mood, 
+                return {
+                    mood: rule.mood,
                     genres: rule.genres,
                     matchedKeyword: keyword,
                     contentType: contentType,
@@ -972,10 +972,10 @@ function detectMoodFromUserInput(userMessage) {
             }
         }
     }
-    
+
     // Default to broad search if no pattern matches
-    return { 
-        mood: 'Movie Enthusiast', 
+    return {
+        mood: 'Movie Enthusiast',
         genres: [28, 35, 18],  // Mix of action, comedy, drama
         matchedKeyword: 'general',
         contentType: contentType,
@@ -987,7 +987,7 @@ function detectMoodFromUserInput(userMessage) {
 function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
     const contentWord = isShowRequest ? 'shows' : 'movies';
     const contentEmoji = isShowRequest ? '📺' : '🎬';
-    
+
     const responses = {
         'Heartwarming': isShowRequest ? [
             "💕 I found some beautiful, feel-good TV shows that'll warm your heart!",
@@ -1134,7 +1134,7 @@ function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
             "🎯 Based on your preference, check these out!"
         ]
     };
-    
+
     const responseArray = responses[detectedMood] || responses['Movie Enthusiast'];
     return responseArray[Math.floor(Math.random() * responseArray.length)];
 }
@@ -1142,48 +1142,48 @@ function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
 // Function to send chatbot message
 async function sendChatbotMessage() {
     const userMessage = aiInput.value.trim();
-    
+
     if (!userMessage) {
         alert('Please tell me what kind of movie you\'re in the mood for!');
         return;
     }
-    
+
     // Add user message to chat
     addMessageToChat('user', userMessage);
     aiInput.value = '';
-    
+
     // Disable button and show loading
     aiSendBtn.disabled = true;
     aiSendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding content...';
-    
+
     try {
         // Analyze user input with rules
         const analysis = detectMoodFromUserInput(userMessage);
         const botResponse = generateBotResponse(analysis.mood, userMessage, analysis.isShowRequest);
-        
+
         // Add bot response
         addMessageToChat('assistant', botResponse);
-        
+
         // Search for movies or TV shows using TMDB
         if (analysis.mood === 'Similar Movies') {
             // Extract movie title from user message (remove "similar to", "like", etc.)
             let movieTitle = userMessage.toLowerCase();
             const similarKeywords = ['similar to', 'like', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like'];
-            
+
             for (const keyword of similarKeywords) {
                 if (movieTitle.includes(keyword)) {
                     movieTitle = movieTitle.replace(keyword, '').trim();
                     break;
                 }
             }
-            
+
             await searchSimilarMovies(movieTitle, analysis.isShowRequest);
         } else if (analysis.isShowRequest) {
             await searchTVShowsByRules(analysis.genres, analysis.mood);
         } else {
             await searchMoviesByRules(analysis.genres, analysis.mood);
         }
-        
+
     } catch (error) {
         console.error('Chatbot error:', error);
         addMessageToChat('assistant', '❌ Sorry, something went wrong. Please try again!');
@@ -1211,11 +1211,11 @@ if (aiInput) {
 // Search TMDB for movies based on detected genres
 async function searchMoviesByRules(genreIds, mood) {
     aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for perfect movies...</div>';
-    
+
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
         url.searchParams.append('with_genres', genreIds.join(','));
-        
+
         // Use vote_average sorting for top-rated films, popularity for others
         if (mood === 'Top-Rated Films') {
             url.searchParams.append('sort_by', 'vote_average.desc');
@@ -1224,29 +1224,29 @@ async function searchMoviesByRules(genreIds, mood) {
             url.searchParams.append('sort_by', 'popularity.desc');
             url.searchParams.append('vote_count.gte', '50');
         }
-        
+
         url.searchParams.append('page', '1');
         url.searchParams.append('include_adult', 'false');
-        
+
         const res = await fetch(url, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
         });
         const data = await res.json();
-        
+
         if (!data.results || data.results.length === 0) {
             aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No movies found for that mood. Try a different request!</p>';
             return;
         }
-        
+
         // Get top 5 movies and enrich them
         const topMovies = data.results.slice(0, 5);
         const enrichedMovies = await Promise.all(
             topMovies.map(movie => enrichMovieData(movie))
         );
-        
+
         // Display results
         displayChatbotMovieResults(enrichedMovies, mood);
-        
+
     } catch (error) {
         console.error('Error searching movies:', error);
         aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for movies. Please try again!</p>';
@@ -1256,11 +1256,11 @@ async function searchMoviesByRules(genreIds, mood) {
 // Search TMDB for TV shows based on detected genres
 async function searchTVShowsByRules(genreIds, mood) {
     aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for perfect TV shows...</div>';
-    
+
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/tv`);
         url.searchParams.append('with_genres', genreIds.join(','));
-        
+
         // Use vote_average sorting for top-rated films, popularity for others
         if (mood === 'Top-Rated Films') {
             url.searchParams.append('sort_by', 'vote_average.desc');
@@ -1269,29 +1269,29 @@ async function searchTVShowsByRules(genreIds, mood) {
             url.searchParams.append('sort_by', 'popularity.desc');
             url.searchParams.append('vote_count.gte', '50');
         }
-        
+
         url.searchParams.append('page', '1');
         url.searchParams.append('include_adult', 'false');
-        
+
         const res = await fetch(url, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
         });
         const data = await res.json();
-        
+
         if (!data.results || data.results.length === 0) {
             aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No TV shows found for that mood. Try a different request!</p>';
             return;
         }
-        
+
         // Get top 5 TV shows and enrich them (as if they were movies for now)
         const topShows = data.results.slice(0, 5);
         const enrichedShows = await Promise.all(
             topShows.map(show => enrichTVShowData(show))
         );
-        
+
         // Display results
         displayChatbotMovieResults(enrichedShows, mood, true);
-        
+
     } catch (error) {
         console.error('Error searching TV shows:', error);
         aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for TV shows. Please try again!</p>';
@@ -1301,26 +1301,26 @@ async function searchTVShowsByRules(genreIds, mood) {
 // Search for movies similar to a given movie title
 async function searchSimilarMovies(movieTitle, isShowRequest = false) {
     aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for similar content...</div>';
-    
+
     try {
         // First, search for the reference movie by title
         const searchUrl = new URL(`${TMDB_BASE_URL}/search/${isShowRequest ? 'tv' : 'movie'}`);
         searchUrl.searchParams.append('query', movieTitle);
         searchUrl.searchParams.append('include_adult', 'false');
-        
+
         const searchRes = await fetch(searchUrl, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
         });
         const searchData = await searchRes.json();
-        
+
         if (!searchData.results || searchData.results.length === 0) {
             aiResults.innerHTML = `<p style="color: var(--text-muted); text-align: center;">Could not find a ${isShowRequest ? 'show' : 'movie'} called "${movieTitle}". Try being more specific!</p>`;
             return;
         }
-        
+
         const referenceItem = searchData.results[0];
         const referenceId = referenceItem.id;
-        
+
         // Get the genres from the reference movie/show
         let genreIds = [];
         if (isShowRequest && referenceItem.genre_ids) {
@@ -1328,12 +1328,12 @@ async function searchSimilarMovies(movieTitle, isShowRequest = false) {
         } else if (!isShowRequest && referenceItem.genre_ids) {
             genreIds = referenceItem.genre_ids.slice(0, 3);
         }
-        
+
         // If no genres found, use default mix
         if (genreIds.length === 0) {
             genreIds = [28, 35, 18]; // Default: action, comedy, drama
         }
-        
+
         // Now search for similar movies by genre
         const similarUrl = new URL(`${TMDB_BASE_URL}/discover/${isShowRequest ? 'tv' : 'movie'}`);
         similarUrl.searchParams.append('with_genres', genreIds.join(','));
@@ -1341,26 +1341,26 @@ async function searchSimilarMovies(movieTitle, isShowRequest = false) {
         similarUrl.searchParams.append('vote_count.gte', '50');
         similarUrl.searchParams.append('page', '1');
         similarUrl.searchParams.append('include_adult', 'false');
-        
+
         const similarRes = await fetch(similarUrl, {
             headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
         });
         const similarData = await similarRes.json();
-        
+
         if (!similarData.results || similarData.results.length === 0) {
             aiResults.innerHTML = `<p style="color: var(--text-muted); text-align: center;">No similar ${isShowRequest ? 'shows' : 'movies'} found. Try another title!</p>`;
             return;
         }
-        
+
         // Get top 5 similar items and enrich them
         const topSimilar = similarData.results.slice(0, 5);
         const enrichedSimilar = await Promise.all(
             topSimilar.map(item => isShowRequest ? enrichTVShowData(item) : enrichMovieData(item))
         );
-        
+
         // Display results with special mood indicator
         displayChatbotMovieResults(enrichedSimilar, `Similar to "${referenceItem.title || referenceItem.name}"`, isShowRequest);
-        
+
     } catch (error) {
         console.error('Error searching for similar content:', error);
         aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for similar content. Please try again!</p>';
@@ -1370,10 +1370,10 @@ async function searchSimilarMovies(movieTitle, isShowRequest = false) {
 // Display movie results from chatbot search
 function displayChatbotMovieResults(movies, mood, isShowRequest = false) {
     aiResults.innerHTML = '';
-    
+
     const grid = document.createElement('div');
     grid.className = 'results-grid';
-    
+
     movies.forEach(movie => {
         const card = createMovieCard(movie);
         // Add a mood indicator to the card
@@ -1384,7 +1384,7 @@ function displayChatbotMovieResults(movies, mood, isShowRequest = false) {
             moodDiv.innerHTML = `<i class="fas fa-lightbulb"></i> <strong>${mood}</strong>`;
             moodDiv.style.cssText = 'margin-bottom: 10px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 4px; font-size: 0.9em; color: var(--accent-gold);';
             details.insertBefore(moodDiv, details.firstChild);
-            
+
             // Add streaming services display if available
             if (movie.providers && movie.providers.length > 0) {
                 const streamingDiv = document.createElement('div');
@@ -1410,7 +1410,7 @@ function displayChatbotMovieResults(movies, mood, isShowRequest = false) {
         }
         grid.appendChild(card);
     });
-    
+
     aiResults.appendChild(grid);
 }
 
@@ -1440,13 +1440,13 @@ function createMovieCard(movie) {
     const posterUrl = movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
 
     // Cast display - Now includes IMDb ID for linking
-    const castHTML = movie.cast && movie.cast.length > 0 
+    const castHTML = movie.cast && movie.cast.length > 0
         ? `<div class="movie-cast">
              <div class="cast-title">Starring</div>
              <div class="cast-list">
-               ${movie.cast.map(actor => 
-                    `<span class="cast-member" data-imdb-id="${actor.imdb_id || ''}">${actor.name}</span>`
-               ).join('')}
+               ${movie.cast.map(actor =>
+            `<span class="cast-member" data-imdb-id="${actor.imdb_id || ''}">${actor.name}</span>`
+        ).join('')}
              </div>
            </div>`
         : '';
@@ -1460,24 +1460,24 @@ function createMovieCard(movie) {
         // For Quiz Results or Favorites, use the movie.providers array (populated in enrichMovieData)
         providersDisplay = movie.providers || [];
     }
-    
+
     const providersHTML = providersDisplay.length > 0
         ? `<div class="movie-platforms">
              ${providersDisplay.map(p => {
-                // FIX: Removed the platform logo from the streaming link
-                return `
+            // FIX: Removed the platform logo from the streaming link
+            return `
                     <a href="${p.url}" target="_blank" class="movie-platform streaming-link" onclick="event.stopPropagation()">
                         ${p.name}
                     </a>`;
-            }).join('')}
+        }).join('')}
            </div>`
         : '';
 
     // Action links
-    const imdbLink = movie.imdb_id 
-        ? `https://www.imdb.com/title/${movie.imdb_id}/` 
+    const imdbLink = movie.imdb_id
+        ? `https://www.imdb.com/title/${movie.imdb_id}/`
         : '#';
-    
+
     const voteAverage = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
 
     div.innerHTML = `
@@ -1532,10 +1532,10 @@ function createMovieCard(movie) {
     // 1. Expansion toggle
     div.addEventListener('click', (e) => {
         // Only expand/collapse if clicking the card body, excluding all interactive elements
-        if(e.target.closest('.action-btn-circle') || e.target.closest('.cast-member') || e.target.closest('.streaming-link')) {
+        if (e.target.closest('.action-btn-circle') || e.target.closest('.cast-member') || e.target.closest('.streaming-link')) {
             return;
         }
-        if(!e.target.closest('.action-links-expanded')) {
+        if (!e.target.closest('.action-links-expanded')) {
             div.classList.toggle('expanded');
         }
     });
@@ -1545,9 +1545,9 @@ function createMovieCard(movie) {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFavorite(movie);
-            
+
             const active = favorites.some(f => f.id === movie.id);
-            
+
             div.querySelectorAll('.btn-favorite').forEach(favBtn => {
                 favBtn.classList.toggle('is-active', active);
                 favBtn.innerHTML = active ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
@@ -1566,7 +1566,7 @@ function createMovieCard(movie) {
             shareMovie(movie);
         });
     });
-    
+
     // 4. Remove button (In hover state action overlay)
     const removeBtn = div.querySelector('.btn-remove');
     if (removeBtn) {
@@ -1575,7 +1575,7 @@ function createMovieCard(movie) {
             toggleFavorite(movie);
         });
     }
-    
+
     // 5. IMDb link (Prevents card expansion/collapse when clicking through)
     div.querySelectorAll('.btn-imdb, .btn-imdb-expanded').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -1606,18 +1606,18 @@ function createMovieCard(movie) {
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? 
-        '<i class="fas fa-check-circle"></i>' : 
+
+    const icon = type === 'success' ?
+        '<i class="fas fa-check-circle"></i>' :
         '<i class="fas fa-times-circle"></i>';
-    
+
     toast.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span>${message}</span>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         toast.classList.add('hide');
@@ -1628,10 +1628,10 @@ function showToast(message, type = 'success') {
 // ========================================
 // Favorites Logic (UPDATED for new provider structure and filter population)
 // ========================================
-function updateFavCount() { 
+function updateFavCount() {
     favCountEl.innerText = favorites.length;
     favCountEl.style.display = favorites.length > 0 ? 'inline' : 'none';
-    
+
     // Trigger animation
     favCountEl.classList.add('updated');
     setTimeout(() => {
@@ -1643,7 +1643,7 @@ updateFavCount();
 function toggleFavorite(movie) {
     const idx = favorites.findIndex(f => f.id === movie.id);
     let isAdding = idx === -1;
-    
+
     // Extract just the names for storage/filtering
     let storedProviderNames = [];
     if (movie.platformName) {
@@ -1654,7 +1654,7 @@ function toggleFavorite(movie) {
         storedProviderNames = movie.providers.map(p => p.name);
     }
 
-    if(idx > -1) {
+    if (idx > -1) {
         favorites.splice(idx, 1);
         showToast(`Removed "${movie.title}" from Watchlist`, 'removed');
     } else {
@@ -1673,9 +1673,9 @@ function toggleFavorite(movie) {
     }
     localStorage.setItem('streamFinderFavs', JSON.stringify(favorites));
     // FIX: Update the count immediately after modifying the favorites array
-    updateFavCount(); 
+    updateFavCount();
     // FIX: Always re-render if the view is active to refresh filters
-    if(viewFavs.classList.contains('active')) renderCategorizedFavorites();
+    if (viewFavs.classList.contains('active')) renderCategorizedFavorites();
 }
 
 function renderCategorizedFavorites() {
@@ -1689,20 +1689,20 @@ function renderCategorizedFavorites() {
     }
 
     container.innerHTML = "";
-    
-    if(favorites.length === 0) {
+
+    if (favorites.length === 0) {
         container.innerHTML = '<div class="empty-state">Your watchlist is empty. Go find some great content!</div>';
         return;
     }
 
     // Apply Filters
     const filteredFavorites = favorites.filter(movie => {
-        const passesGenre = favoritesFilters.genre === 'all' || 
-                            (movie.genre_ids && movie.genre_ids.includes(parseInt(favoritesFilters.genre)));
-        
-        const passesPlatform = favoritesFilters.platform === 'all' || 
-                               (movie.providers && movie.providers.includes(favoritesFilters.platform));
-        
+        const passesGenre = favoritesFilters.genre === 'all' ||
+            (movie.genre_ids && movie.genre_ids.includes(parseInt(favoritesFilters.genre)));
+
+        const passesPlatform = favoritesFilters.platform === 'all' ||
+            (movie.providers && movie.providers.includes(favoritesFilters.platform));
+
         return passesGenre && passesPlatform;
     });
 
@@ -1713,10 +1713,10 @@ function renderCategorizedFavorites() {
 
     // 2. Group by Genre ID 
     const groups = {};
-    
+
     filteredFavorites.forEach(movie => {
         const gId = (movie.genre_ids && movie.genre_ids.length > 0) ? movie.genre_ids[0] : 'other';
-        if(!groups[gId]) groups[gId] = [];
+        if (!groups[gId]) groups[gId] = [];
         groups[gId].push(movie);
     });
 
@@ -1724,31 +1724,31 @@ function renderCategorizedFavorites() {
     for (const [gId, movies] of Object.entries(groups)) {
         const section = document.createElement('div');
         section.className = 'genre-section';
-        
+
         const genreName = GENRE_NAMES[gId] || "Uncategorized";
-        
+
         section.innerHTML = `<h3 class="genre-title">${genreName} (${movies.length})</h3>`;
-        
+
         const grid = document.createElement('div');
-        grid.className = 'favorites-grid'; 
-        
+        grid.className = 'favorites-grid';
+
         movies.forEach(m => {
-             // For favorites, we manually reconstruct the providers property from the stored names 
-             // to include the URL for the card creation function, ensuring the card looks the same.
-             // Handle both string arrays and already-formatted objects
-             if (m.providers && Array.isArray(m.providers)) {
-                 m.providers = m.providers.map(item => {
-                     // If it's already an object with name property, use it
-                     if (typeof item === 'object' && item.name) {
-                         return item;
-                     }
-                     // If it's a string, convert to object
-                     const name = String(item);
-                     const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
-                     return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
-                 });
-             }
-             grid.appendChild(createMovieCard(m));
+            // For favorites, we manually reconstruct the providers property from the stored names 
+            // to include the URL for the card creation function, ensuring the card looks the same.
+            // Handle both string arrays and already-formatted objects
+            if (m.providers && Array.isArray(m.providers)) {
+                m.providers = m.providers.map(item => {
+                    // If it's already an object with name property, use it
+                    if (typeof item === 'object' && item.name) {
+                        return item;
+                    }
+                    // If it's a string, convert to object
+                    const name = String(item);
+                    const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                    return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
+                });
+            }
+            grid.appendChild(createMovieCard(m));
         });
         section.appendChild(grid);
         container.appendChild(section);
@@ -1758,16 +1758,16 @@ function renderCategorizedFavorites() {
 // FIX: Function to populate the filter dropdowns with ALL platforms
 function populateFavoriteFilters(genreFilterEl, platformFilterEl) {
     const uniqueGenres = new Set();
-    
+
     // Collect all genres from saved movies
     favorites.forEach(movie => {
         if (movie.genre_ids) {
             movie.genre_ids.forEach(id => uniqueGenres.add(id));
         }
     });
-    
+
     // Get all platform names from the map keys
-    const allPlatforms = Object.values(PLATFORM_NAMES).sort(); 
+    const allPlatforms = Object.values(PLATFORM_NAMES).sort();
 
     // Clear existing options (except "All")
     genreFilterEl.innerHTML = '<option value="all">All Genres</option>';
@@ -1798,14 +1798,14 @@ function populateFavoriteFilters(genreFilterEl, platformFilterEl) {
             favoritesFilters.genre = e.target.value;
             renderCategorizedFavorites();
         });
-        
+
         platformFilterEl.addEventListener('change', (e) => {
             favoritesFilters.platform = e.target.value;
             renderCategorizedFavorites();
         });
-        
+
         const clearBtn = document.getElementById('clear-filters-btn');
-        if(clearBtn) {
+        if (clearBtn) {
             clearBtn.addEventListener('click', () => {
                 favoritesFilters.genre = 'all';
                 favoritesFilters.platform = 'all';
