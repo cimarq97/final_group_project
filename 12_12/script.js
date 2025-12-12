@@ -1707,6 +1707,9 @@ function createMovieCard(movie) {
                 <button class="expanded-action-btn btn-favorite-expanded ${isFav ? 'is-active' : ''}" title="Add to watchlist">
                     ${isFav ? '<i class="fas fa-trash-alt"></i> Remove' : '<i class="far fa-heart"></i> Watchlist'}
                 </button>
+                ${movie.imdb_id ? `<a href="${imdbLink}" target="_blank" class="expanded-action-btn btn-imdb-expanded" title="View on IMDB">
+                    <i class="fas fa-external-link-alt"></i> IMDb
+                </a>` : ''}
                 <button class="expanded-action-btn btn-share-expanded" data-title="${movie.title}">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
