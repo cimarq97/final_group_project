@@ -1367,47 +1367,156 @@ async function searchSimilarMovies(movieTitle, isShowRequest = false) {
     }
 }
 
+// Create a compact chatbot card that expands on click
+function createChatbotCard(movie) {
+    const div = document.createElement('div');
+    div.className = 'chatbot-movie-card';
+    const isFav = favorites.some(f => f.id === movie.id);
+    const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+    const posterUrl = movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+
+    // Providers display
+    let providersDisplay = [];
+    if (movie.providers && movie.providers.length > 0) {
+        providersDisplay = movie.providers;
+    }
+
+    const providersHTML = providersDisplay.length > 0
+        ? `<div class="chatbot-card-platforms">
+             ${providersDisplay.map(p => {
+            return `
+                    <a href="${p.url}" target="_blank" class="chatbot-platform-badge" onclick="event.stopPropagation()">
+                        ${p.name}
+                    </a>`;
+        }).join('')}
+           </div>`
+        : '<div class="chatbot-card-platforms"><span class="chatbot-no-stream">Not on streaming</span></div>';
+
+    // Cast display
+    const castHTML = movie.cast && movie.cast.length > 0
+        ? `<div class="movie-cast">
+             <div class="cast-title">Starring</div>
+             <div class="cast-list">
+               ${movie.cast.map(actor =>
+            `<span class="cast-member" data-imdb-id="${actor.imdb_id || ''}">${actor.name}</span>`
+        ).join('')}
+             </div>
+           </div>`
+        : '';
+
+    // Action links for expanded view
+    const imdbLink = movie.imdb_id
+        ? `https://www.imdb.com/title/${movie.imdb_id}/`
+        : '#';
+
+    const voteAverage = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+    div.innerHTML = `
+        <!-- Collapsed View -->
+        <div class="chatbot-card-collapsed">
+            <img src="${posterUrl}" class="chatbot-card-poster" alt="${movie.title} Poster">
+            <div class="chatbot-card-overlay">
+                <h3 class="chatbot-card-title">${movie.title}</h3>
+                ${providersHTML}
+            </div>
+        </div>
+
+        <!-- Expanded View (Hidden by default) -->
+        <div class="chatbot-card-expanded" style="display: none;">
+            <img src="${posterUrl}" class="chatbot-card-poster-expanded" alt="${movie.title} Poster">
+            <div class="chatbot-expanded-content">
+                <h3 class="chatbot-card-title">${movie.title}</h3>
+                
+                <div class="chatbot-expanded-meta">
+                    <span><i class="fas fa-calendar"></i> ${year}</span>
+                    <span><i class="fas fa-star"></i> ${voteAverage}</span>
+                </div>
+
+                <p class="chatbot-card-desc">${movie.overview || "No description available."}</p>
+
+                ${castHTML}
+
+                <div class="chatbot-expanded-platforms">
+                    <div class="streaming-label"><i class="fas fa-tv"></i> Watch on:</div>
+                    <div class="chatbot-streaming-services">
+                        ${providersDisplay.map(p => `
+                            <a href="${p.url}" target="_blank" class="chatbot-streaming-link" onclick="event.stopPropagation()">
+                                ${p.name}
+                            </a>
+                        `).join('') || '<span class="chatbot-no-stream">Not available on streaming</span>'}
+                    </div>
+                </div>
+
+                <div class="chatbot-action-buttons">
+                    <button class="chatbot-action-btn chatbot-favorite-btn ${isFav ? 'is-active' : ''}" title="Add to watchlist">
+                        ${isFav ? '<i class="fas fa-heart"></i> In Watchlist' : '<i class="far fa-heart"></i> Watchlist'}
+                    </button>
+                    ${movie.imdb_id ? `<a href="${imdbLink}" target="_blank" class="chatbot-action-btn chatbot-imdb-btn btn-imdb-chat" title="View on IMDB">
+                        <i class="fas fa-external-link-alt"></i> IMDb
+                    </a>` : ''}
+                    <button class="chatbot-action-btn chatbot-share-btn btn-share-chat" data-title="${movie.title}" title="Share this movie">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+
+                <div class="chatbot-click-hint">Click to collapse</div>
+            </div>
+        </div>
+    `;
+
+    // Toggle expanded/collapsed on click
+    div.addEventListener('click', (e) => {
+        if (e.target.closest('.chatbot-platform-badge') || 
+            e.target.closest('.chatbot-streaming-link') || 
+            e.target.closest('.cast-member')) {
+            return;
+        }
+        
+        const collapsed = div.querySelector('.chatbot-card-collapsed');
+        const expanded = div.querySelector('.chatbot-card-expanded');
+        
+        if (collapsed.style.display !== 'none') {
+            collapsed.style.display = 'none';
+            expanded.style.display = 'block';
+        } else {
+            collapsed.style.display = 'block';
+            expanded.style.display = 'none';
+        }
+    });
+
+    // Favorite toggle
+    const favBtn = div.querySelector('.chatbot-favorite-btn');
+    if (favBtn) {
+        favBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(movie);
+            const active = favorites.some(f => f.id === movie.id);
+            favBtn.classList.toggle('is-active');
+            favBtn.innerHTML = active ? '<i class="fas fa-heart"></i> In Watchlist' : '<i class="far fa-heart"></i> Watchlist';
+        });
+    }
+
+    // Share button
+    const shareBtn = div.querySelector('.chatbot-share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            shareViaURL();
+        });
+    }
+
+    return div;
+}
+
 // Display movie results from chatbot search
 function displayChatbotMovieResults(movies, mood, isShowRequest = false) {
     aiResults.innerHTML = '';
 
     const grid = document.createElement('div');
-    grid.className = 'results-grid';
+    grid.className = 'ai-results-grid';
 
     movies.forEach(movie => {
-        const card = createMovieCard(movie);
-        // Add a mood indicator to the card
-        const details = card.querySelector('.movie-details');
-        if (details) {
-            const moodDiv = document.createElement('div');
-            moodDiv.className = 'chatbot-mood-indicator';
-            moodDiv.innerHTML = `<i class="fas fa-lightbulb"></i> <strong>${mood}</strong>`;
-            moodDiv.style.cssText = 'margin-bottom: 10px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 4px; font-size: 0.9em; color: var(--accent-gold);';
-            details.insertBefore(moodDiv, details.firstChild);
-
-            // Add streaming services display if available
-            if (movie.providers && movie.providers.length > 0) {
-                const streamingDiv = document.createElement('div');
-                streamingDiv.className = 'chatbot-streaming';
-                streamingDiv.innerHTML = `<div class="streaming-label"><i class="fas fa-tv"></i> Watch on:</div>
-                    <div class="streaming-services">
-                        ${movie.providers.map(p => `
-                            <a href="${p.url}" target="_blank" class="streaming-badge" onclick="event.stopPropagation()">
-                                ${p.name}
-                            </a>
-                        `).join('')}
-                    </div>`;
-                streamingDiv.style.cssText = 'margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);';
-                details.appendChild(streamingDiv);
-            } else {
-                // Show "not available on streaming" if no providers
-                const noStreamingDiv = document.createElement('div');
-                noStreamingDiv.className = 'chatbot-no-streaming';
-                noStreamingDiv.innerHTML = `<div class="streaming-label"><i class="fas fa-ban"></i> Not available on streaming</div>`;
-                noStreamingDiv.style.cssText = 'margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); font-size: 0.85rem;';
-                details.appendChild(noStreamingDiv);
-            }
-        }
+        const card = createChatbotCard(movie);
         grid.appendChild(card);
     });
 
