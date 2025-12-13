@@ -645,69 +645,26 @@ async function fetchAndDisplayMovies(surpriseMode = false) {
 }
 
 function renderResultsSummary(surpriseMode, selectedGenreNames) {
-    if (!resultsSummaryEl) return;
-    let summaryHTML = '';
-    let titleHTML = '';
-
-    const totalCount = currentResultsCache.length;
-    const displayCount = Math.min(totalCount, 10);
-
-    if (surpriseMode) {
-        titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
-        
-        let platformOptions = '<option value="default">All Platforms</option>';
-        Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
-            platformOptions += `<option value="platform-${id}">${name}</option>`;
-        });
-        
-        summaryHTML = `<p class="summary-tagline">Here are films selected for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
-        <div class="sort-controls">
-            <label for="sort-by-platform">Sort by platform:</label>
-            <select id="sort-by-platform" class="sort-select">
-                ${platformOptions}
-            </select>
-        </div>`;
-    } else {
-        titleHTML = `<h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>`;
-        
-        const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
-        const timeText = selections.time ? `<span class="summary-item"><i class="fas fa-clock"></i> <strong>Time:</strong> ${selections.time}</span>` : '';
-
-        const genresText = selectedGenreNames.length > 0
-            ? `<span class="summary-item"><i class="fas fa-mask"></i> <strong>Genres:</strong> ${selectedGenreNames.join(', ')}</span>`
-            : '';
-
-        const platformNames = selections.platforms.map(id => PLATFORM_NAMES[id]).filter(Boolean).join(', ');
-        const platformsText = selections.platforms.length > 0
-            ? `<span class="summary-item"><i class="fas fa-tv"></i> <strong>Platforms:</strong> ${platformNames}</span>`
-            : '';
-
-        summaryHTML = `
-            <p class="summary-tagline">Here are films selected for your <strong>${selections.mood}</strong> vibe</p>
-            <div class="summary-details">
-                ${moodText}
-                ${timeText}
-                ${genresText}
-                ${platformsText}
-            </div>
-        `;
+    // Populate sort dropdown
+    let platformOptions = '<option value="default">All Platforms</option>';
+    Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+        platformOptions += `<option value="platform-${id}">${name}</option>`;
+    });
+    
+    const sortDropdown = document.getElementById('sort-by-platform');
+    if (sortDropdown) {
+        sortDropdown.innerHTML = platformOptions;
     }
 
-    const titleEl = document.getElementById('results-title');
-    if (titleEl) {
-        titleEl.innerHTML = titleHTML;
-    }
-
-    resultsSummaryEl.innerHTML = summaryHTML;
     updateVibeButton();
     
     if (surpriseMode) {
         showFeedbackLoop();
     }
     
-    const sortDropdown = document.getElementById('sort-by-platform');
-    if (sortDropdown) {
-        sortDropdown.addEventListener('change', (e) => {
+    const sortDropdown2 = document.getElementById('sort-by-platform');
+    if (sortDropdown2) {
+        sortDropdown2.addEventListener('change', (e) => {
             const sortBy = e.target.value;
             if (sortBy === 'platform') {
                 const sorted = currentResultsCache.slice().sort((a, b) => {
@@ -723,16 +680,8 @@ function renderResultsSummary(surpriseMode, selectedGenreNames) {
                     if (!movie.providers || movie.providers.length === 0) return false;
                     return movie.providers.some(provider => provider.name === platformName);
                 });
-                const taglineEl = document.querySelector('.summary-tagline');
-                if (taglineEl) {
-                    taglineEl.innerHTML = `Here are films selected for your <strong>${selections.mood}</strong> vibe on ${platformName}`;
-                }
                 displayMovies(filtered, document.getElementById('results-area'));
             } else {
-                const taglineEl = document.querySelector('.summary-tagline');
-                if (taglineEl) {
-                    taglineEl.innerHTML = `Here are films selected for your <strong>${selections.mood}</strong> vibe across all streaming platforms`;
-                }
                 displayMovies(currentResultsCache, document.getElementById('results-area'));
             }
         });
