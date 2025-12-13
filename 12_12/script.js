@@ -713,71 +713,21 @@ async function fetchAndDisplayMovies(isSurpriseMode = false) {
 
 // NEW FUNCTION: Renders the summary of the quiz choices at the top of the results page
 function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
-    if (!resultsSummaryEl) return;
-    let summaryHTML = '';
-    let titleHTML = '';
-
-    // FIX: Use the actual count of results fetched from the API for the "potential matches" number
-    const totalCount = currentResultsCache.length;
-    // Show up to 10 on screen, but display actual count
-    const displayCount = Math.min(totalCount, 10);
-
-    if (isSurpriseMode) {
-        titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
-        
-        // Build platform options dynamically
-        let platformOptions = '<option value="default">All Platforms</option>';
-        Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
-            platformOptions += `<option value="platform-${id}">${name}</option>`;
-        });
-        
-        summaryHTML = `<p class="summary-tagline">${displayCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
-        <div class="sort-controls">
-            <label for="sort-by-platform">Sort by platform:</label>
-            <select id="sort-by-platform" class="sort-select">
-                ${platformOptions}
-            </select>
-        </div>`;
-    } else {
-        titleHTML = `<h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>`;
-        
-        const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
-        const timeText = selections.time ? `<span class="summary-item"><i class="fas fa-clock"></i> <strong>Time:</strong> ${selections.time}</span>` : '';
-
-        const genresText = selectedGenreNames.length > 0
-            ? `<span class="summary-item"><i class="fas fa-mask"></i> <strong>Genres:</strong> ${selectedGenreNames.join(', ')}</span>`
-            : '';
-
-        const platformNames = selections.platforms.map(id => PLATFORM_NAMES[id]).filter(Boolean).join(', ');
-        const platformsText = selections.platforms.length > 0
-            ? `<span class="summary-item"><i class="fas fa-tv"></i> <strong>Platforms:</strong> ${platformNames}</span>`
-            : '';
-
-        // FIX: Improved summary copy - more engaging
-        summaryHTML = `
-            <p class="summary-tagline">${displayCount} films selected for your <strong>${selections.mood}</strong> vibe</p>
-            <div class="summary-details">
-                ${moodText}
-                ${timeText}
-                ${genresText}
-                ${platformsText}
-            </div>
-        `;
+    // Build platform options dynamically for the header dropdown
+    let platformOptions = '<option value="default">All Platforms</option>';
+    Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+        platformOptions += `<option value="platform-${id}">${name}</option>`;
+    });
+    
+    const sortDropdown = document.getElementById('sort-by-platform');
+    if (sortDropdown) {
+        sortDropdown.innerHTML = platformOptions;
     }
 
-    // Set title at top
-    const titleEl = document.getElementById('results-title');
-    if (titleEl) {
-        titleEl.innerHTML = titleHTML;
-    }
-
-    // Set summary below feedback
-    resultsSummaryEl.innerHTML = summaryHTML;
     updateVibeButton();
     showFeedbackLoop();
     
     // Add event listener for sort dropdown
-    const sortDropdown = document.getElementById('sort-by-platform');
     if (sortDropdown) {
         sortDropdown.addEventListener('change', (e) => {
             const sortBy = e.target.value;
@@ -797,20 +747,9 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
                     if (!movie.providers || movie.providers.length === 0) return false;
                     return movie.providers.some(provider => provider.name === platformName);
                 });
-                // Update count message when filtering
-                const displayCount = Math.min(filtered.length, 10);
-                const taglineEl = document.querySelector('.summary-tagline');
-                if (taglineEl) {
-                    taglineEl.innerHTML = `${displayCount} films for your <strong>${selections.mood}</strong> vibe on ${platformName}`;
-                }
                 displayMovies(filtered, document.getElementById('results-area'));
             } else {
-                // Default: shuffle display
-                const displayCount = Math.min(currentResultsCache.length, 10);
-                const taglineEl = document.querySelector('.summary-tagline');
-                if (taglineEl) {
-                    taglineEl.innerHTML = `${displayCount} films for your <strong>${selections.mood}</strong> vibe across all streaming platforms`;
-                }
+                // Default: show all
                 displayMovies(currentResultsCache, document.getElementById('results-area'));
             }
         });

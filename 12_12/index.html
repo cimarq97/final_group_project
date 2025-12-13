@@ -209,9 +209,16 @@
                     </div>
                 </div>
                 <div class="quiz-step" id="step-5" role="region" aria-label="Movie recommendations results">
-                    <div id="results-title" class="results-title"></div>
+                    <div class="favorites-header">
+                        <h1>Surprise Me!</h1>
+                        <p id="surprise-tagline">Discover your next favorite film based on your mood.</p>
+                        <div class="sort-controls watchlist-sort">
+                            <label for="sort-by-platform">Sort by platform:</label>
+                            <select id="sort-by-platform" class="sort-select"></select>
+                        </div>
+                    </div>
 
-                    <div class="vibe-selector" id="vibe-selector">
+                    <div id="vibe-selector" class="vibe-selector">
                         <p class="vibe-announcement">Your vibe today: <span class="vibe-text" id="vibe-text"></span> ✨</p>
                         <p class="emotional-hook">Get ready for films that match your energy. Let's find your next obsession.</p>
                         
@@ -224,9 +231,6 @@
                         </div>
                     </div>
 
-                    <div id="results-summary" class="results-summary" aria-live="polite"
-                        aria-label="Your personalized movie recommendations"></div>
-
                     <div id="loading-bar-container" class="loading-bar-container" style="display: none;">
                         <div class="loading-bar">
                             <div class="loading-bar-fill"></div>
@@ -237,10 +241,10 @@
                     <div id="results-area" class="results-grid" role="grid" aria-label="List of recommended movies">
                     </div>
 
-                    <div class="step-nav centered">
-                        <button type="button" class="action-btn secondary-btn" id="back-to-top-btn"
-                            aria-label="Back to top"><i class="fas fa-arrow-up"></i> Back to Top</button>
-                    </div>
+                    <button type="button" id="back-to-top-btn" class="back-to-top-btn"
+                        aria-label="Scroll back to top" style="display: none;">
+                        <i class="fas fa-chevron-up"></i> Back to Top
+                    </button>
                 </div>
             </form>
         </div>
