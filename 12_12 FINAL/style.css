@@ -1233,13 +1233,6 @@ main {
     background: var(--accent-yellow);
 }
 
-/* Full-screen card display for Surprise Me page */
-#results-area .favorites-grid .movie-card {
-    flex: 0 0 calc(100vw - 4rem);
-    min-width: calc(100vw - 4rem);
-    max-width: calc(100vw - 4rem);
-}
-
 /* =========================================
    COLLAPSIBLE MOVIE CARDS
    ========================================= */
