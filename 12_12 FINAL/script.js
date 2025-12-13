@@ -1,0 +1,1829 @@
+// ========================================
+// API & Config (UPDATED - Crackle removed)
+// ========================================
+const TMDB_V4_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxOWQ3ZGFjM2QyZDI4OGFiMDFiMTliMDA1YWQzMjIxNCIsIm5iZiI6MTc2MzA4MjI4Mi4wOTYsInN1YiI6IjY5MTY4MDJhMzEzN2M3ZGFmMTg3NjVhNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.mNnYHf28DA9OqlRm8Vc6tsVs96b9YrA6eJlnWJbtuXY";
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
+
+// User's selected platforms for AI filtering
+let userSelectedPlatforms = [];
+
+// ========================================
+// Enhanced Chatbot Configuration with Keywords
+// ========================================
+const CHATBOT_RULES = {
+    patterns: [
+        // Core Genre Moods
+        { keywords: ['heartwarming', 'heartfelt', 'uplifting', 'inspiring', 'feel-good', 'wholesome', 'heartwarmed', 'sweet', 'touching', 'warm', 'cozy'], genres: [10749, 35, 18], mood: 'Heartwarming' },
+        { keywords: ['action', 'fight', 'adrenaline', 'explosive', 'thrill', 'battle', 'combat', 'chase'], genres: [28, 53], mood: 'Action' },
+        { keywords: ['comedy', 'funny', 'laugh', 'humor', 'hilarious', 'comedic', 'quirky', 'witty'], genres: [35], mood: 'Comedy' },
+        { keywords: ['romantic', 'romance', 'love', 'couple', 'date night', 'dating', 'sweet love', 'relationship'], genres: [10749], mood: 'Romantic' },
+        { keywords: ['horror', 'scary', 'terror', 'spooky', 'frightening', 'creepy', 'horror movie', 'supernatural'], genres: [27], mood: 'Horror' },
+        { keywords: ['drama', 'emotional', 'touching', 'serious', 'intense', 'powerful', 'moving', 'deep'], genres: [18], mood: 'Drama' },
+        { keywords: ['sci-fi', 'scifi', 'science fiction', 'futuristic', 'space', 'aliens', 'dystopian', 'cyberpunk'], genres: [878], mood: 'Sci-Fi' },
+        { keywords: ['adventure', 'explore', 'journey', 'quest', 'epic', 'action adventure', 'travel'], genres: [12], mood: 'Adventure' },
+        { keywords: ['animation', 'animated', 'cartoon', 'anime', 'hand-drawn', 'stop-motion'], genres: [16], mood: 'Animation' },
+        { keywords: ['documentary', 'docuseries', 'true story', 'real', 'biography', 'real-life', 'non-fiction'], genres: [99], mood: 'Documentary' },
+        { keywords: ['mystery', 'thriller', 'detective', 'suspense', 'whodunit', 'mysterious', 'suspenseful', 'crime'], genres: [9648, 53], mood: 'Mystery' },
+        { keywords: ['family', 'kids', 'children', 'family-friendly', 'fun for all', 'parents', 'kids movie'], genres: [10751], mood: 'Family' },
+        { keywords: ['historical', 'history', 'period', 'based on true', 'war', 'historical drama', 'period piece'], genres: [10752, 36], mood: 'Historical' },
+        { keywords: ['top rated', 'highest rated', 'best rated', 'best films', 'best movies', 'most rated', 'highly rated', 'rated', 'best of'], genres: [28, 35, 18, 878, 53, 27, 10749], mood: 'Top-Rated' },
+        
+        // Expanded Thematic Keywords
+        { keywords: ['hungry', 'food', 'cooking', 'restaurant', 'chef', 'culinary', 'dinner', 'eating', 'meal', 'cuisine', 'recipe'], genres: [35, 18, 10402], mood: 'Food & Cooking' },
+        { keywords: ['nostalgic', 'nostalgia', 'childhood', 'memory', 'memories', 'retro', 'throwback', 'old school', 'classic'], genres: [18, 35, 10751], mood: 'Nostalgic' },
+        { keywords: ['sports', 'sport', 'athlete', 'game', 'competition', 'championship', 'tournament', 'football', 'basketball', 'baseball', 'soccer'], genres: [99, 18], mood: 'Sports' },
+        { keywords: ['music', 'musical', 'concert', 'band', 'singer', 'song', 'rock', 'pop', 'jazz', 'orchestra'], genres: [10402, 18], mood: 'Music' },
+        { keywords: ['travel', 'vacation', 'trip', 'journey', 'exploration', 'wanderlust', 'destination'], genres: [12, 99], mood: 'Travel' },
+        { keywords: ['fantasy', 'magic', 'wizard', 'witch', 'dragon', 'mythical', 'mythology', 'fairytale'], genres: [14, 12], mood: 'Fantasy' },
+        { keywords: ['war', 'military', 'soldier', 'battle', 'combat', 'army', 'navy', 'air force'], genres: [10752, 18], mood: 'War' },
+        { keywords: ['western', 'cowboy', 'frontier', 'wild west', 'outlaw', 'sheriff'], genres: [37], mood: 'Western' },
+        
+        // Similar search pattern
+        { keywords: ['similar to', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like', 'like this', 'like that'], genres: [], mood: 'Similar Movies', isSimilarSearch: true }
+    ]
+};
+
+const MOOD_CONFIG = {
+    cozy: { genres: [35, 10749], sort: "popularity.desc" },
+    excited: { genres: [28, 53, 878], sort: "popularity.desc" },
+    sad: { genres: [18, 10752], sort: "vote_average.desc", minVotes: 100 },
+    tired: { genres: [35, 10751], sort: "popularity.desc", minVotes: 50 },
+    curious: { genres: [99, 9648, 18], sort: "vote_average.desc", minVotes: 50 },
+    topRated: { genres: [28, 35, 18, 878, 53, 27, 10749], sort: "vote_average.desc", minVotes: 200 }
+};
+
+const RUNTIME_CONFIG = {
+    short: { lte: 30 },
+    medium: { gte: 30, lte: 60 },
+    long: { gte: 80, lte: 160 },
+    binge: null
+};
+
+// UPDATED: Removed Crackle (283)
+const PLATFORM_NAMES = {
+    8: "Netflix", 
+    15: "Hulu", 
+    1899: "Max", 
+    337: "Disney+", 
+    9: "Prime Video",
+    531: "Paramount+", 
+    384: "MGM+", 
+    257: "Fubo TV", 
+    350: "Apple TV+",
+    386: "Peacock", 
+    1796: "Crunchyroll"
+};
+
+const PLATFORM_URLS = {
+    8: "https://www.netflix.com/",
+    15: "https://www.hulu.com/",
+    1899: "https://www.max.com/",
+    337: "https://www.disneyplus.com/",
+    9: "https://www.primevideo.com/primemembers",
+    531: "https://www.paramountplus.com/",
+    384: "https://www.mgmplus.com/",
+    257: "https://www.fubo.tv/",
+    350: "https://tv.apple.com/",
+    386: "https://www.peacocktv.com/",
+    1796: "https://www.crunchyroll.com/"
+};
+
+const GENRE_NAMES = {
+    28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
+    99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
+    27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+    10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western",
+    10759: "Action & Adventure", 10762: "Kids", 10763: "News", 10764: "Reality",
+    10765: "Sci-Fi & Fantasy", 10766: "Soap", 10767: "Talk", 10768: "War & Politics"
+};
+
+const MOVIE_FACTS = [
+    "The first feature-length film ever made was 'The Story of the Kelly Gang' from Australia in 1906.",
+    "The shortest Oscar-winning live action film is 'The Crescent' at just 39 seconds!",
+    "The word 'cinema' comes from the Greek word 'kinema' meaning 'movement'.",
+    "In 1927, 'The Jazz Singer' was the first film with synchronized dialogue, revolutionizing cinema forever.",
+    "The oldest movie still in existence is 'Roundhay Garden Scene' from 1888, lasting just 2.11 seconds.",
+    "Each frame in a typical film is displayed for only 1/24th of a second, creating the illusion of movement.",
+    "The most expensive film ever made was 'Avengers: Endgame' at a reported $356-379 million budget.",
+    "Marilyn Monroe started with a different name: Norma Jeane Mortenson.",
+    "Alfred Hitchcock never won an Oscar for Best Director, despite 5 nominations.",
+    "Charlie Chaplin's iconic 'Tramp' character was created in his second film in 1914.",
+    "The phrase 'That's a wrap!' comes from the practice of wrapping film reels in cloth between scenes.",
+    "The Oscars statuette is 13.5 inches tall and weighs 8.5 pounds.",
+    "Orson Welles was only 25 years old when he directed 'Citizen Kane', often considered the greatest film ever made."
+];
+
+// ========================================
+// State & Elements
+// ========================================
+let currentStep = 0;
+let selections = { mood: null, time: null, genres: [], platforms: [] };
+let favorites;
+try {
+    const savedFavs = JSON.parse(localStorage.getItem('streamFinderFavs'));
+    favorites = Array.isArray(savedFavs) ? savedFavs : [];
+    if (savedFavs && !Array.isArray(savedFavs)) {
+        console.warn("Watchlist data corrupted, resetting.");
+        localStorage.removeItem('streamFinderFavs');
+    }
+} catch (e) {
+    console.error("Error parsing watchlist data, resetting:", e);
+    favorites = [];
+    localStorage.removeItem('streamFinderFavs');
+}
+
+let navigationHistory = [];
+let currentResultsCache = [];
+let aiResultsCache = [];
+let isSurpriseMode = false;
+
+const navQuiz = document.getElementById('nav-quiz');
+const navAI = document.getElementById('nav-ai');
+const navFavs = document.getElementById('nav-favorites');
+const viewQuiz = document.getElementById('view-quiz');
+const viewAI = document.getElementById('view-ai');
+const viewFavs = document.getElementById('view-favorites');
+const favCountEl = document.getElementById('fav-count');
+const logoHome = document.getElementById('logo-home');
+const resultsSummaryEl = document.getElementById('results-summary');
+
+// ========================================
+// IMDb Modal Functions (NEW)
+// ========================================
+function showIMDbModal() {
+    const modal = document.getElementById('imdb-modal');
+    const closeBtn = document.querySelector('.modal-close');
+    
+    modal.style.display = 'block';
+    
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    };
+    
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 3000);
+}
+
+// ========================================
+// URL Sharing Functions
+// ========================================
+function encodeSelections() {
+    const params = new URLSearchParams();
+    if (selections.mood) params.append('mood', selections.mood);
+    if (selections.time) params.append('time', selections.time);
+    if (selections.genres.length) params.append('genres', selections.genres.join(','));
+    if (selections.platforms.length) params.append('platforms', selections.platforms.join(','));
+    return params.toString();
+}
+
+function generateShareLink() {
+    const encodedParams = encodeSelections();
+    const baseURL = window.location.origin + window.location.pathname;
+    return encodedParams ? `${baseURL}?${encodedParams}` : baseURL;
+}
+
+function copyToClipboard() {
+    const shareLink = generateShareLink();
+    navigator.clipboard.writeText(shareLink).then(() => {
+        alert('Share link copied to clipboard! 🎬');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+function shareViaURL() {
+    const shareLink = generateShareLink();
+    if (navigator.share) {
+        navigator.share({
+            title: 'StreamFinder',
+            text: 'Check out these movie recommendations from StreamFinder!',
+            url: shareLink
+        }).catch(err => console.log('Share cancelled'));
+    } else {
+        copyToClipboard();
+    }
+}
+
+function shareMovie(movie) {
+    const shareUrl = movie.imdb_id ? 
+        `https://www.imdb.com/title/${movie.imdb_id}/` : 
+        window.location.href;
+    const shareText = movie.imdb_id ? 
+        `Check out "${movie.title}" on IMDb!` : 
+        `Check out "${movie.title}" on StreamFinder!`;
+    
+    const shareData = {
+        title: movie.title,
+        text: shareText,
+        url: shareUrl
+    };
+
+    if (navigator.share) {
+        navigator.share(shareData).catch(err => console.log('Share cancelled'));
+    } else {
+        navigator.clipboard.writeText(`${movie.title} - ${shareUrl}`).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    }
+}
+
+// ========================================
+// Movie Fact Display
+// ========================================
+function initializeMovieFact() {
+    const movieFactEl = document.getElementById('movie-fact');
+    const factTextEl = document.getElementById('fact-text');
+
+    if (!movieFactEl) return;
+
+    const randomFact = MOVIE_FACTS[Math.floor(Math.random() * MOVIE_FACTS.length)];
+    factTextEl.textContent = randomFact;
+
+    setTimeout(() => {
+        movieFactEl.classList.add('fade-out');
+        setTimeout(() => {
+            movieFactEl.style.display = 'none';
+        }, 800);
+    }, 8000);
+}
+
+// ========================================
+// Browser History Navigation
+// ========================================
+function pushHistory(step) {
+    navigationHistory.push(step);
+    updateBrowserHistory(step);
+}
+
+function updateBrowserHistory(step) {
+    const state = { step };
+    const url = `#step-${step}`;
+    window.history.pushState(state, '', url);
+}
+
+window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.step !== undefined) {
+        goToStep(e.state.step, false);
+    }
+});
+
+// ========================================
+// View Navigation Logic
+// ========================================
+function switchView(view) {
+    viewQuiz.classList.remove('active');
+    viewAI.classList.remove('active');
+    viewFavs.classList.remove('active');
+    navQuiz.classList.remove('active');
+    navAI.classList.remove('active');
+    navFavs.classList.remove('active');
+
+    if (view === 'quiz') {
+        viewQuiz.classList.add('active');
+        navQuiz.classList.add('active');
+    } else if (view === 'ai') {
+        viewAI.classList.add('active');
+        navAI.classList.add('active');
+        if (aiMessages.children.length === 0) {
+            const greetingMessage = document.createElement('div');
+            greetingMessage.className = 'ai-message bot-message';
+            greetingMessage.innerHTML = `
+                <div class="message-content">
+                    <p>Hi! 👋 Tell me what you're in the mood for, and I'll find the perfect movie or show for you!</p>
+                    <p><small>Try keywords like: "hungry", "nostalgic", "action", "comedy", "similar to The Matrix"</small></p>
+                </div>
+            `;
+            aiMessages.appendChild(greetingMessage);
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+    } else {
+        viewFavs.classList.add('active');
+        navFavs.classList.add('active');
+        renderCategorizedFavorites();
+    }
+}
+
+navQuiz.addEventListener('click', () => switchView('quiz'));
+navAI.addEventListener('click', () => switchView('ai'));
+navFavs.addEventListener('click', () => switchView('favs'));
+
+// Hamburger Menu Toggle
+const hamburgerBtn = document.getElementById('hamburger-btn');
+const navLinks = document.getElementById('nav-links');
+
+hamburgerBtn.addEventListener('click', () => {
+    hamburgerBtn.classList.toggle('active');
+    navLinks.classList.toggle('active');
+});
+
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        hamburgerBtn.classList.remove('active');
+        navLinks.classList.remove('active');
+    });
+});
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.navbar')) {
+        hamburgerBtn.classList.remove('active');
+        navLinks.classList.remove('active');
+    }
+});
+
+logoHome.addEventListener('click', () => {
+    switchView('quiz');
+    goToStep(0);
+});
+
+function goToStep(index, addToHistory = true) {
+    if (index < 0 || index > 5) return;
+
+    const activeStep = document.querySelector('.quiz-step.active');
+    const nextStepEl = document.getElementById(`step-${index}`);
+
+    if (activeStep) {
+        activeStep.classList.add('fading-out');
+        activeStep.classList.remove('active');
+
+        setTimeout(() => {
+            activeStep.classList.remove('fading-out');
+            activeStep.style.display = 'none';
+
+            if (nextStepEl) {
+                nextStepEl.style.display = 'flex';
+                setTimeout(() => {
+                    nextStepEl.classList.add('active');
+                }, 50);
+            }
+        }, 400);
+    } else {
+        nextStepEl.classList.add('active');
+    }
+
+    currentStep = index;
+    if (addToHistory) {
+        pushHistory(index);
+    }
+}
+
+document.querySelectorAll('.next-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (currentStep === 0) {
+            goToStep(1);
+        } else {
+            goToStep(currentStep + 1);
+        }
+    });
+});
+
+document.querySelectorAll('.back-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetStep = parseInt(btn.dataset.target || (currentStep - 1), 10);
+        goToStep(targetStep);
+    });
+});
+
+// ========================================
+// Selection Logic 
+// ========================================
+function setupSingleSelection(parentId, key) {
+    const parent = document.getElementById(parentId);
+    if (!parent) return;
+    const btns = parent.querySelectorAll('.option-card');
+    const nextBtn = parent.closest('.quiz-step').querySelector('.next-btn');
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.tagName === 'BUTTON') {
+                btns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selections[key] = btn.dataset.value;
+                if (nextBtn) nextBtn.disabled = false;
+            }
+        });
+    });
+}
+
+setupSingleSelection('mood-buttons', 'mood');
+setupSingleSelection('time-buttons', 'time');
+
+const genreParent = document.getElementById('genre-buttons');
+if (genreParent) {
+    const genreBtns = genreParent.querySelectorAll('.option-card');
+    genreBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const genreId = parseInt(btn.dataset.genreId, 10);
+            const index = selections.genres.indexOf(genreId);
+
+            btn.classList.toggle('selected');
+
+            if (index > -1) {
+                selections.genres.splice(index, 1);
+            } else {
+                selections.genres.push(genreId);
+            }
+        });
+    });
+}
+
+function initializeSelectAllButton() {
+    const selectAllBtn = document.getElementById('select-all-platforms');
+    const platformCheckboxes = document.querySelectorAll('input[name="platform"]');
+    const platformCards = document.querySelectorAll('.platform-card');
+
+    if (!selectAllBtn) return;
+
+    selectAllBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const allChecked = Array.from(platformCheckboxes).every(cb => cb.checked);
+
+        platformCheckboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
+
+        platformCards.forEach(card => {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+
+        if (allChecked) {
+            selectAllBtn.innerHTML = '<i class="fas fa-check-double"></i> Select All';
+        } else {
+            selectAllBtn.innerHTML = '<i class="fas fa-times-circle"></i> Deselect All';
+        }
+    });
+
+    platformCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+            }
+            if (card.querySelector('input[type="checkbox"]').checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+    });
+}
+
+// ========================================
+// Surprise Button
+// ========================================
+document.getElementById('surprise-btn').addEventListener('click', () => {
+    const moods = Object.keys(MOOD_CONFIG);
+    selections.mood = moods[Math.floor(Math.random() * moods.length)];
+    selections.time = null;
+    selections.genres = [];
+    selections.platforms = Object.keys(PLATFORM_NAMES).map(id => id.toString());
+
+    isSurpriseMode = true;
+    goToStep(5);
+    fetchAndDisplayMovies(true);
+});
+
+// ========================================
+// Quiz Submission
+// ========================================
+document.getElementById('quiz-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    selections.platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
+    
+    // Store user platforms for AI filtering
+    userSelectedPlatforms = selections.platforms.slice();
+    
+    isSurpriseMode = false;
+    goToStep(5);
+    fetchAndDisplayMovies(false);
+});
+
+document.getElementById('back-to-top-btn').addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
+function updateVibeButton() {
+    const vibeText = document.getElementById('vibe-text');
+    if (vibeText && selections.mood) {
+        vibeText.textContent = selections.mood;
+    }
+}
+
+function showFeedbackLoop() {
+    const feedbackLoop = document.getElementById('feedback-loop');
+    if (feedbackLoop) {
+        feedbackLoop.style.display = 'block';
+    }
+    
+    const feedbackBtns = document.querySelectorAll('.feedback-btn');
+    feedbackBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const feedback = btn.dataset.feedback;
+            feedbackBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            if (feedback === 'loved') {
+                triggerConfetti();
+                console.log(`User feedback: ${feedback}`);
+            } else if (feedback === 'nope') {
+                setTimeout(() => {
+                    const moods = Object.keys(MOOD_CONFIG);
+                    selections.mood = moods[Math.floor(Math.random() * moods.length)];
+                    fetchAndDisplayMovies(true);
+                }, 500);
+            }
+        });
+    });
+}
+
+function triggerConfetti() {
+    const confettiSettings = {
+        target: 'confetti-canvas',
+        max: 200,
+        size: 1,
+        animate: true,
+        props: ['circle', 'square', 'triangle', 'line'],
+        colors: [[212, 175, 55], [25, 118, 210], [255, 215, 0], [255, 165, 0]],
+        clock: 25,
+        interval: null,
+        rotate: true,
+        start_from_edge: false,
+        respawn: true
+    };
+    
+    const confetti = new ConfettiGenerator(confettiSettings);
+    confetti.render();
+    
+    setTimeout(() => {
+        confetti.clear();
+    }, 3000);
+}
+
+// ========================================
+// Fetch & Render Results (UPDATED)
+// ========================================
+async function fetchAndDisplayMovies(surpriseMode = false) {
+    isSurpriseMode = surpriseMode;
+    const container = document.getElementById('results-area');
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching archives...</div>';
+    if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
+
+    const vibeSelector = document.getElementById('vibe-selector');
+    if (vibeSelector) {
+        vibeSelector.style.display = surpriseMode ? 'block' : 'none';
+    }
+
+    try {
+        const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
+        url.searchParams.append("watch_region", "US");
+
+        if (selections.platforms.length) {
+            url.searchParams.append("with_watch_providers", selections.platforms.join("|"));
+        }
+
+        let genreStr = "";
+        let sortStr = "popularity.desc";
+
+        let selectedGenreNames = [];
+        let finalGenreIds = [];
+
+        if (selections.genres.length > 0) {
+            finalGenreIds = selections.genres;
+        } else if (selections.mood) {
+            finalGenreIds = MOOD_CONFIG[selections.mood].genres;
+            sortStr = MOOD_CONFIG[selections.mood].sort;
+        }
+
+        genreStr = finalGenreIds.join(",");
+        selectedGenreNames = finalGenreIds.map(id => GENRE_NAMES[id]).filter(Boolean);
+
+        if (genreStr) url.searchParams.append("with_genres", genreStr);
+        url.searchParams.append("sort_by", sortStr);
+        url.searchParams.append("vote_count.gte", "50");
+
+        if (selections.time && RUNTIME_CONFIG[selections.time]) {
+            const rt = RUNTIME_CONFIG[selections.time];
+            if (rt.gte) url.searchParams.append("with_runtime.gte", rt.gte);
+            if (rt.lte) url.searchParams.append("with_runtime.lte", rt.lte);
+        }
+
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const data = await res.json();
+
+        currentResultsCache = data.results || [];
+
+        renderResultsSummary(surpriseMode, selectedGenreNames);
+
+        if (surpriseMode) {
+            await displaySurpriseMovies(currentResultsCache, container);
+        } else {
+            displayMovies(currentResultsCache, container);
+        }
+
+    } catch (e) {
+        console.error("Fetch Error:", e);
+        container.innerHTML = '<div class="empty-state">Error connecting to database.</div>';
+        if (resultsSummaryEl) resultsSummaryEl.innerHTML = '';
+    }
+}
+
+function renderResultsSummary(surpriseMode, selectedGenreNames) {
+    if (!resultsSummaryEl) return;
+    let summaryHTML = '';
+    let titleHTML = '';
+
+    const totalCount = currentResultsCache.length;
+    const displayCount = Math.min(totalCount, 10);
+
+    if (surpriseMode) {
+        titleHTML = `<h1 class="summary-title"><i class="fas fa-magic"></i> Surprise Me Results!</h1>`;
+        
+        let platformOptions = '<option value="default">All Platforms</option>';
+        Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+            platformOptions += `<option value="platform-${id}">${name}</option>`;
+        });
+        
+        summaryHTML = `<p class="summary-tagline">Here are films selected for your <strong>${selections.mood}</strong> vibe across all streaming platforms</p>
+        <div class="sort-controls">
+            <label for="sort-by-platform">Sort by platform:</label>
+            <select id="sort-by-platform" class="sort-select">
+                ${platformOptions}
+            </select>
+        </div>`;
+    } else {
+        titleHTML = `<h1 class="summary-title"><i class="fas fa-trophy"></i> Your Perfect Picks</h1>`;
+        
+        const moodText = selections.mood ? `<span class="summary-item"><i class="fas fa-hand-point-right"></i> <strong>Mood:</strong> ${selections.mood}</span>` : '';
+        const timeText = selections.time ? `<span class="summary-item"><i class="fas fa-clock"></i> <strong>Time:</strong> ${selections.time}</span>` : '';
+
+        const genresText = selectedGenreNames.length > 0
+            ? `<span class="summary-item"><i class="fas fa-mask"></i> <strong>Genres:</strong> ${selectedGenreNames.join(', ')}</span>`
+            : '';
+
+        const platformNames = selections.platforms.map(id => PLATFORM_NAMES[id]).filter(Boolean).join(', ');
+        const platformsText = selections.platforms.length > 0
+            ? `<span class="summary-item"><i class="fas fa-tv"></i> <strong>Platforms:</strong> ${platformNames}</span>`
+            : '';
+
+        summaryHTML = `
+            <p class="summary-tagline">Here are films selected for your <strong>${selections.mood}</strong> vibe</p>
+            <div class="summary-details">
+                ${moodText}
+                ${timeText}
+                ${genresText}
+                ${platformsText}
+            </div>
+        `;
+    }
+
+    const titleEl = document.getElementById('results-title');
+    if (titleEl) {
+        titleEl.innerHTML = titleHTML;
+    }
+
+    resultsSummaryEl.innerHTML = summaryHTML;
+    updateVibeButton();
+    
+    if (surpriseMode) {
+        showFeedbackLoop();
+    }
+    
+    const sortDropdown = document.getElementById('sort-by-platform');
+    if (sortDropdown) {
+        sortDropdown.addEventListener('change', (e) => {
+            const sortBy = e.target.value;
+            if (sortBy === 'platform') {
+                const sorted = currentResultsCache.slice().sort((a, b) => {
+                    const platformA = (a.providers && a.providers[0]?.name) || '';
+                    const platformB = (b.providers && b.providers[0]?.name) || '';
+                    return platformA.localeCompare(platformB);
+                });
+                displayMovies(sorted, document.getElementById('results-area'));
+            } else if (sortBy.startsWith('platform-')) {
+                const platformId = sortBy.split('-')[1];
+                const platformName = PLATFORM_NAMES[platformId];
+                const filtered = currentResultsCache.filter(movie => {
+                    if (!movie.providers || movie.providers.length === 0) return false;
+                    return movie.providers.some(provider => provider.name === platformName);
+                });
+                const taglineEl = document.querySelector('.summary-tagline');
+                if (taglineEl) {
+                    taglineEl.innerHTML = `Here are films selected for your <strong>${selections.mood}</strong> vibe on ${platformName}`;
+                }
+                displayMovies(filtered, document.getElementById('results-area'));
+            } else {
+                const taglineEl = document.querySelector('.summary-tagline');
+                if (taglineEl) {
+                    taglineEl.innerHTML = `Here are films selected for your <strong>${selections.mood}</strong> vibe across all streaming platforms`;
+                }
+                displayMovies(currentResultsCache, document.getElementById('results-area'));
+            }
+        });
+    }
+}
+
+function displayMovies(movies, container) {
+    container.innerHTML = "";
+    if (!movies.length) {
+        container.innerHTML = '<div class="empty-state">No matches found. Try different filters.</div>';
+        return;
+    }
+
+    const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
+
+    const promises = shuffled.map(m => enrichMovieData(m));
+    
+    Promise.all(promises).then(enrichedMovies => {
+        const groups = {};
+        enrichedMovies.forEach((movie) => {
+            const rawProviders = movie.providers || [];
+            
+            if (rawProviders.length > 0) {
+                const platformKey = rawProviders[0].name;
+                
+                if (!groups[platformKey]) {
+                    groups[platformKey] = { name: platformKey, movies: [] };
+                }
+                
+                groups[platformKey].movies.push(movie);
+            }
+        });
+        
+        for (const group of Object.values(groups)) {
+            const section = document.createElement('div');
+            section.className = 'platform-section';
+            section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'favorites-grid';
+            
+            group.movies.forEach(movie => {
+                grid.appendChild(createUnifiedMovieCard(movie));
+            });
+            
+            section.appendChild(grid);
+            container.appendChild(section);
+        }
+
+    }).catch(err => {
+        console.error("Error enriching movies:", err);
+        container.innerHTML = '<div class="empty-state">Error loading movie details.</div>';
+    });
+}
+
+// ========================================
+// Enrich Movie Data
+// ========================================
+async function enrichMovieData(movie) {
+    try {
+        const creditsUrl = `${TMDB_BASE_URL}/movie/${movie.id}/credits`;
+        const creditsRes = await fetch(creditsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const creditsData = await creditsRes.json();
+
+        const externalIdsUrl = `${TMDB_BASE_URL}/movie/${movie.id}/external_ids`;
+        const externalIdsRes = await fetch(externalIdsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const externalIdsData = await externalIdsRes.json();
+
+        movie.cast = creditsData.cast ? creditsData.cast.slice(0, 5) : [];
+
+        for (const actor of movie.cast) {
+            const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
+            const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+            const personData = await personRes.json();
+            actor.imdb_id = personData.imdb_id;
+        }
+
+        const providersData = await fetchWatchProviders(movie.id);
+        const usProviders = providersData?.results?.US?.flatrate || [];
+
+        movie.providers = usProviders.map(p => {
+            const name = PLATFORM_NAMES[p.provider_id];
+            const url = PLATFORM_URLS[p.provider_id] || '#';
+            return name ? { name, url } : null;
+        }).filter(Boolean);
+
+        movie.imdb_id = externalIdsData.imdb_id;
+
+    } catch (e) {
+        console.error("Error enriching movie data:", e);
+    }
+    return movie;
+}
+
+async function displaySurpriseMovies(movies, container) {
+    container.innerHTML = "";
+    if (!movies.length) {
+        container.innerHTML = '<div class="empty-state">No surprises found on your selected platforms.</div>';
+        return;
+    }
+
+    const promises = movies.sort(() => 0.5 - Math.random()).slice(0, 15).map(m => enrichMovieData(m));
+    const enrichedMovies = await Promise.all(promises);
+
+    const groups = {};
+    enrichedMovies.forEach((movie) => {
+        const rawProviders = movie.providers || [];
+
+        if (rawProviders.length > 0) {
+            const selectedProvider = rawProviders.find(p =>
+                selections.platforms.some(id => PLATFORM_NAMES[id] === p.name)
+            );
+
+            if (selectedProvider) {
+                const platformKey = selectedProvider.name;
+
+                if (!groups[platformKey]) {
+                    groups[platformKey] = { name: platformKey, movies: [] };
+                }
+
+                movie.platformName = selectedProvider.name;
+                movie.platformUrl = selectedProvider.url;
+                groups[platformKey].movies.push(movie);
+            }
+        }
+    });
+
+    if (Object.keys(groups).length === 0) {
+        container.innerHTML = '<div class="empty-state">Could not verify streaming providers for the results.</div>';
+        return;
+    }
+
+    for (const group of Object.values(groups)) {
+        const section = document.createElement('div');
+        section.className = 'platform-section';
+        section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+
+        const grid = document.createElement('div');
+        grid.className = 'favorites-grid';
+
+        group.movies.forEach(m => grid.appendChild(createUnifiedMovieCard(m)));
+        section.appendChild(grid);
+        container.appendChild(section);
+    }
+}
+
+async function fetchWatchProviders(movieId) {
+    const url = new URL(`${TMDB_BASE_URL}/movie/${movieId}/watch/providers`);
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+    return res.json();
+}
+
+async function fetchTVWatchProviders(tvId) {
+    const url = new URL(`${TMDB_BASE_URL}/tv/${tvId}/watch/providers`);
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+    return res.json();
+}
+
+async function enrichTVShowData(show) {
+    try {
+        const creditsUrl = `${TMDB_BASE_URL}/tv/${show.id}/credits`;
+        const creditsRes = await fetch(creditsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const creditsData = await creditsRes.json();
+
+        const externalIdsUrl = `${TMDB_BASE_URL}/tv/${show.id}/external_ids`;
+        const externalIdsRes = await fetch(externalIdsUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+        const externalIdsData = await externalIdsRes.json();
+
+        show.cast = creditsData.cast ? creditsData.cast.slice(0, 5) : [];
+
+        for (const actor of show.cast) {
+            const personUrl = `${TMDB_BASE_URL}/person/${actor.id}/external_ids`;
+            const personRes = await fetch(personUrl, { headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` } });
+            const personData = await personRes.json();
+            actor.imdb_id = personData.imdb_id;
+        }
+
+        const providersData = await fetchTVWatchProviders(show.id);
+        const usProviders = providersData?.results?.US?.flatrate || [];
+
+        show.providers = usProviders.map(p => {
+            const name = PLATFORM_NAMES[p.provider_id];
+            const url = PLATFORM_URLS[p.provider_id] || '#';
+            return name ? { name, url } : null;
+        }).filter(Boolean);
+
+        show.imdb_id = externalIdsData.imdb_id;
+        show.title = show.name;
+
+    } catch (e) {
+        console.error("Error enriching TV show data:", e);
+    }
+    return show;
+}
+
+// ========================================
+// ENHANCED AI Chatbot (UPDATED - Filter by platforms)
+// ========================================
+
+const aiInput = document.getElementById('ai-input');
+const aiSendBtn = document.getElementById('ai-send-btn');
+const aiMessages = document.getElementById('ai-chat-messages');
+const aiResults = document.getElementById('ai-results');
+
+function detectMoodFromUserInput(userMessage) {
+    const lowerMessage = userMessage.toLowerCase();
+
+    const tvKeywords = ['tv show', 'tv series', 'series', 'show', 'binge', 'episodes', 'season'];
+    const movieKeywords = ['movie', 'film', 'watch a film'];
+
+    let contentType = 'movie';
+    let isShowRequest = false;
+
+    for (const keyword of tvKeywords) {
+        if (lowerMessage.includes(keyword)) {
+            contentType = 'tv';
+            isShowRequest = true;
+            break;
+        }
+    }
+
+    for (const keyword of movieKeywords) {
+        if (lowerMessage.includes(keyword)) {
+            contentType = 'movie';
+            isShowRequest = false;
+            break;
+        }
+    }
+
+    for (const rule of CHATBOT_RULES.patterns) {
+        for (const keyword of rule.keywords) {
+            const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+            if (regex.test(lowerMessage)) {
+                return {
+                    mood: rule.mood,
+                    genres: rule.genres,
+                    matchedKeyword: keyword,
+                    contentType: contentType,
+                    isShowRequest: isShowRequest
+                };
+            }
+        }
+    }
+
+    return {
+        mood: 'Keyword Search',
+        genres: [28, 35, 18, 878, 53, 27, 10749],
+        matchedKeyword: 'general',
+        contentType: contentType,
+        isShowRequest: isShowRequest,
+        searchQuery: userMessage
+    };
+}
+
+function generateBotResponse(detectedMood, userMessage, isShowRequest = false) {
+    const contentWord = isShowRequest ? 'shows' : 'movies';
+
+    const responses = {
+        'Heartwarming': isShowRequest ? [
+            "💕 I found some beautiful, feel-good TV shows that'll warm your heart!",
+            "🌟 Here are some uplifting series with heartfelt moments!",
+            "✨ Get ready to smile! Here are some touching, wholesome shows!"
+        ] : [
+            "💕 I found some beautiful, feel-good movies that'll warm your heart!",
+            "🌟 Here are some uplifting films with heartfelt moments!",
+            "✨ Get ready to smile! Here are some touching, wholesome movies!"
+        ],
+        'Action': isShowRequest ? [
+            "🎬 Buckle up! I found some intense action-packed TV shows for you!",
+            "💥 Here are some adrenaline-pumping series that'll keep you hooked!",
+            "🔥 Ready for some explosive entertainment? Check these out!"
+        ] : [
+            "🎬 Buckle up! I found some intense action-packed movies for you!",
+            "💥 Here are some adrenaline-pumping films that'll keep you on the edge of your seat!",
+            "🔥 Ready for some explosive entertainment? Check these out!"
+        ],
+        'Comedy': isShowRequest ? [
+            "😂 Time for some laughs! Here are hilarious TV shows!",
+            "🎭 Get ready to giggle! These comedies are comedy gold!",
+            "😄 Here are some side-splitting comedy series I picked for you!"
+        ] : [
+            "😂 Time for some laughs! Here are hilarious movies!",
+            "🎭 Get ready to giggle! These comedies are comedy gold!",
+            "😄 Here are some side-splitting comedies I picked for you!"
+        ],
+        'Romantic': isShowRequest ? [
+            "💕 I found some beautiful love stories in TV form!",
+            "🌹 Here are some heartwarming romantic series!",
+            "💑 Get your tissues ready! Here are some touching romance shows!"
+        ] : [
+            "💕 I found some beautiful love stories perfect for you!",
+            "🌹 Here are some heartwarming romantic films!",
+            "💑 Get your tissues ready! Here are some touching romance movies!"
+        ],
+        'Horror': isShowRequest ? [
+            "👻 Brace yourself! Here are some genuinely scary TV shows!",
+            "🔪 Get the lights on! Here are thrilling horror series!",
+            "😱 Ready for some scares? Check out these spine-tingling shows!"
+        ] : [
+            "👻 Brace yourself! Here are some genuinely scary films!",
+            "🔪 Get the lights on! Here are thrilling horror movies!",
+            "😱 Ready for some scares? Check out these spine-tingling films!"
+        ],
+        'Drama': isShowRequest ? [
+            "🎭 Here are some powerful, emotionally gripping drama series!",
+            "😢 Prepare for an emotional journey with these compelling dramas!",
+            "❤️ Here are some deeply moving dramatic shows!"
+        ] : [
+            "🎭 Here are some powerful, emotionally gripping dramas!",
+            "😢 Prepare for an emotional journey with these compelling dramas!",
+            "❤️ Here are some deeply moving dramatic films!"
+        ],
+        'Sci-Fi': isShowRequest ? [
+            "🚀 Blast off! Here are some mind-bending sci-fi TV shows!",
+            "🌌 Explore the future with these amazing sci-fi series!",
+            "👽 Here are some imaginative sci-fi adventures for you!"
+        ] : [
+            "🚀 Blast off! Here are some mind-bending sci-fi films!",
+            "🌌 Explore the future with these amazing sci-fi movies!",
+            "👽 Here are some imaginative sci-fi adventures for you!"
+        ],
+        'Food & Cooking': isShowRequest ? [
+            "🍕 Found some delicious TV shows about food and cooking!",
+            "👨‍🍳 Get ready for culinary adventures!",
+            "🍽️ Here are some mouth-watering food-themed series!"
+        ] : [
+            "🍕 Found some delicious movies about food and cooking!",
+            "👨‍🍳 Get ready for culinary adventures!",
+            "🍽️ Here are some mouth-watering food-themed movies!"
+        ],
+        'Nostalgic': isShowRequest ? [
+            "🕰️ Take a trip down memory lane with these nostalgic TV shows!",
+            "📼 Here are some classic series that'll bring back memories!",
+            "🌟 Relive the good old days with these throwback shows!"
+        ] : [
+            "🕰️ Take a trip down memory lane with these nostalgic movies!",
+            "📼 Here are some classic films that'll bring back memories!",
+            "🌟 Relive the good old days with these throwback movies!"
+        ],
+        'Sports': isShowRequest ? [
+            "🏀 Get in the game! Here are exciting sports TV shows!",
+            "⚽ Found some thrilling sports series!",
+            "🎾 Here are competitive shows that'll get your adrenaline pumping!"
+        ] : [
+            "🏀 Get in the game! Here are exciting sports movies!",
+            "⚽ Found some thrilling sports films!",
+            "🎾 Here are competitive movies that'll get your adrenaline pumping!"
+        ],
+        'Music': isShowRequest ? [
+            "🎵 Turn up the volume! Here are musical TV shows!",
+            "🎸 Found some rocking series about music!",
+            "🎶 Here are shows that celebrate the power of music!"
+        ] : [
+            "🎵 Turn up the volume! Here are musical movies!",
+            "🎸 Found some rocking films about music!",
+            "🎶 Here are movies that celebrate the power of music!"
+        ],
+        'Travel': isShowRequest ? [
+            "✈️ Pack your bags! Here are travel-themed TV shows!",
+            "🌍 Explore the world from your couch!",
+            "🗺️ Here are shows that'll satisfy your wanderlust!"
+        ] : [
+            "✈️ Pack your bags! Here are travel-themed movies!",
+            "🌍 Explore the world from your couch!",
+            "🗺️ Here are movies that'll satisfy your wanderlust!"
+        ],
+        'Fantasy': isShowRequest ? [
+            "🐉 Enter magical realms with these fantasy TV shows!",
+            "🧙‍♂️ Found epic series with wizards and dragons!",
+            "✨ Here are enchanting fantasy adventures!"
+        ] : [
+            "🐉 Enter magical realms with these fantasy movies!",
+            "🧙‍♂️ Found epic films with wizards and dragons!",
+            "✨ Here are enchanting fantasy adventures!"
+        ],
+        'War': isShowRequest ? [
+            "⚔️ Experience epic battles with these war TV shows!",
+            "🪖 Found gripping military series!",
+            "🎖️ Here are powerful shows about courage and conflict!"
+        ] : [
+            "⚔️ Experience epic battles with these war movies!",
+            "🪖 Found gripping military films!",
+            "🎖️ Here are powerful movies about courage and conflict!"
+        ],
+        'Western': isShowRequest ? [
+            "🤠 Saddle up! Here are wild west TV shows!",
+            "🐎 Found some classic western series!",
+            "🌵 Here are shows set on the frontier!"
+        ] : [
+            "🤠 Saddle up! Here are wild west movies!",
+            "🐎 Found some classic western films!",
+            "🌵 Here are movies set on the frontier!"
+        ],
+        'Keyword Search': isShowRequest ? [
+            "🔍 Searching for TV shows based on your keywords...",
+            "✨ Found some series that match what you're looking for!",
+            "🎯 Here are TV shows based on your search!"
+        ] : [
+            "🔍 Searching for movies based on your keywords...",
+            "✨ Found some films that match what you're looking for!",
+            "🎯 Here are movies based on your search!"
+        ],
+        'Similar Movies': isShowRequest ? [
+            "🔍 Finding shows similar to what you mentioned...",
+            "✨ Here are some great shows in the same style!",
+            "🎯 Based on your preference, check these out!"
+        ] : [
+            "🔍 Finding movies similar to what you mentioned...",
+            "✨ Here are some great movies in the same style!",
+            "🎯 Based on your preference, check these out!"
+        ]
+    };
+
+    const defaultResponses = isShowRequest ? [
+        "🎬 Here are some great TV shows for you!",
+        "🌟 Let me find some perfect shows for you!",
+        "📽️ I've found some amazing series you might enjoy!"
+    ] : [
+        "🎬 Here are some great recommendations for you!",
+        "🌟 Let me find some perfect movies for you!",
+        "📽️ I've found some amazing films you might enjoy!"
+    ];
+
+    const responseArray = responses[detectedMood] || defaultResponses;
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
+}
+
+async function sendChatbotMessage() {
+    const userMessage = aiInput.value.trim();
+
+    if (!userMessage) {
+        alert('Please tell me what kind of movie you\'re in the mood for!');
+        return;
+    }
+
+    addMessageToChat('user', userMessage);
+    aiInput.value = '';
+
+    aiSendBtn.disabled = true;
+    aiSendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding content...';
+
+    try {
+        const analysis = detectMoodFromUserInput(userMessage);
+        const botResponse = generateBotResponse(analysis.mood, userMessage, analysis.isShowRequest);
+
+        addMessageToChat('assistant', botResponse);
+
+        if (analysis.mood === 'Similar Movies') {
+            let movieTitle = userMessage.toLowerCase();
+            const similarKeywords = ['similar to', 'like', 'similar films', 'similar movies', 'recommendations like', 'movies like', 'shows like'];
+
+            for (const keyword of similarKeywords) {
+                if (movieTitle.includes(keyword)) {
+                    movieTitle = movieTitle.replace(keyword, '').trim();
+                    break;
+                }
+            }
+
+            await searchSimilarMovies(movieTitle, analysis.isShowRequest);
+        } else if (analysis.mood === 'Keyword Search' && analysis.searchQuery) {
+            await searchByKeywords(analysis.searchQuery, analysis.isShowRequest);
+        } else if (analysis.isShowRequest) {
+            await searchTVShowsByRules(analysis.genres, analysis.mood);
+        } else {
+            await searchMoviesByRules(analysis.genres, analysis.mood);
+        }
+
+    } catch (error) {
+        console.error('Chatbot error:', error);
+        addMessageToChat('assistant', '❌ Sorry, something went wrong. Please try again!');
+    } finally {
+        aiSendBtn.disabled = false;
+        aiSendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Get Recommendations';
+    }
+}
+
+if (aiSendBtn) {
+    aiSendBtn.addEventListener('click', sendChatbotMessage);
+}
+
+if (aiInput) {
+    aiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatbotMessage();
+        }
+    });
+}
+
+// UPDATED: Filter by user's platforms
+async function searchMoviesByRules(genreIds, mood) {
+    aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for perfect movies...</div>';
+
+    try {
+        const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
+        if (genreIds.length > 0) {
+            url.searchParams.append('with_genres', genreIds.join(','));
+        }
+
+        // NEW: Add platform filtering
+        if (userSelectedPlatforms.length > 0) {
+            url.searchParams.append("watch_region", "US");
+            url.searchParams.append("with_watch_providers", userSelectedPlatforms.join("|"));
+        }
+
+        if (mood === 'Top-Rated') {
+            url.searchParams.append('sort_by', 'vote_average.desc');
+            url.searchParams.append('vote_count.gte', '200');
+        } else {
+            url.searchParams.append('sort_by', 'popularity.desc');
+            url.searchParams.append('vote_count.gte', '50');
+        }
+
+        url.searchParams.append('page', '1');
+        url.searchParams.append('include_adult', 'false');
+
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
+        });
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No movies found for that mood on your platforms. Try a different request!</p>';
+            return;
+        }
+
+        const topMovies = data.results.slice(0, 5);
+        const enrichedMovies = await Promise.all(
+            topMovies.map(movie => enrichMovieData(movie))
+        );
+
+        aiResultsCache = enrichedMovies;
+        displayChatbotMovieResults(enrichedMovies, mood);
+
+    } catch (error) {
+        console.error('Error searching movies:', error);
+        aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for movies. Please try again!</p>';
+    }
+}
+
+// UPDATED: Filter by user's platforms
+async function searchTVShowsByRules(genreIds, mood) {
+    aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for perfect TV shows...</div>';
+
+    try {
+        const url = new URL(`${TMDB_BASE_URL}/discover/tv`);
+        if (genreIds.length > 0) {
+            url.searchParams.append('with_genres', genreIds.join(','));
+        }
+
+        // NEW: Add platform filtering
+        if (userSelectedPlatforms.length > 0) {
+            url.searchParams.append("watch_region", "US");
+            url.searchParams.append("with_watch_providers", userSelectedPlatforms.join("|"));
+        }
+
+        if (mood === 'Top-Rated') {
+            url.searchParams.append('sort_by', 'vote_average.desc');
+            url.searchParams.append('vote_count.gte', '200');
+        } else {
+            url.searchParams.append('sort_by', 'popularity.desc');
+            url.searchParams.append('vote_count.gte', '50');
+        }
+
+        url.searchParams.append('page', '1');
+        url.searchParams.append('include_adult', 'false');
+
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
+        });
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No TV shows found for that mood on your platforms. Try a different request!</p>';
+            return;
+        }
+
+        const topShows = data.results.slice(0, 5);
+        const enrichedShows = await Promise.all(
+            topShows.map(show => enrichTVShowData(show))
+        );
+
+        aiResultsCache = enrichedShows;
+        displayChatbotMovieResults(enrichedShows, mood, true);
+
+    } catch (error) {
+        console.error('Error searching TV shows:', error);
+        aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for TV shows. Please try again!</p>';
+    }
+}
+
+async function searchByKeywords(keywords, isShowRequest = false) {
+    aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for content matching your keywords...</div>';
+
+    try {
+        const searchUrl = new URL(`${TMDB_BASE_URL}/search/${isShowRequest ? 'tv' : 'movie'}`);
+        searchUrl.searchParams.append('query', keywords);
+        searchUrl.searchParams.append('include_adult', 'false');
+        searchUrl.searchParams.append('page', '1');
+
+        const searchRes = await fetch(searchUrl, {
+            headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
+        });
+        const searchData = await searchRes.json();
+
+        if (!searchData.results || searchData.results.length === 0) {
+            aiResults.innerHTML = `<p style="color: var(--text-muted); text-align: center;">No ${isShowRequest ? 'shows' : 'movies'} found for "${keywords}". Try different keywords!</p>`;
+            return;
+        }
+
+        const topResults = searchData.results.slice(0, 5);
+        const enrichedResults = await Promise.all(
+            topResults.map(item => isShowRequest ? enrichTVShowData(item) : enrichMovieData(item))
+        );
+
+        aiResultsCache = enrichedResults;
+        displayChatbotMovieResults(enrichedResults, `Results for "${keywords}"`, isShowRequest);
+
+    } catch (error) {
+        console.error('Error searching by keywords:', error);
+        aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching. Please try again!</p>';
+    }
+}
+
+async function searchSimilarMovies(movieTitle, isShowRequest = false) {
+    aiResults.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Searching for similar content...</div>';
+
+    try {
+        const searchUrl = new URL(`${TMDB_BASE_URL}/search/${isShowRequest ? 'tv' : 'movie'}`);
+        searchUrl.searchParams.append('query', movieTitle);
+        searchUrl.searchParams.append('include_adult', 'false');
+
+        const searchRes = await fetch(searchUrl, {
+            headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
+        });
+        const searchData = await searchRes.json();
+
+        if (!searchData.results || searchData.results.length === 0) {
+            aiResults.innerHTML = `<p style="color: var(--text-muted); text-align: center;">Could not find a ${isShowRequest ? 'show' : 'movie'} called "${movieTitle}". Try being more specific!</p>`;
+            return;
+        }
+
+        const referenceItem = searchData.results[0];
+
+        let genreIds = [];
+        if (isShowRequest && referenceItem.genre_ids) {
+            genreIds = referenceItem.genre_ids.slice(0, 3);
+        } else if (!isShowRequest && referenceItem.genre_ids) {
+            genreIds = referenceItem.genre_ids.slice(0, 3);
+        }
+
+        if (genreIds.length === 0) {
+            genreIds = [28, 35, 18];
+        }
+
+        const similarUrl = new URL(`${TMDB_BASE_URL}/discover/${isShowRequest ? 'tv' : 'movie'}`);
+        similarUrl.searchParams.append('with_genres', genreIds.join(','));
+        similarUrl.searchParams.append('sort_by', 'vote_average.desc');
+        similarUrl.searchParams.append('vote_count.gte', '50');
+        similarUrl.searchParams.append('page', '1');
+        similarUrl.searchParams.append('include_adult', 'false');
+
+        const similarRes = await fetch(similarUrl, {
+            headers: { Authorization: `Bearer ${TMDB_V4_TOKEN}` }
+        });
+        const similarData = await similarRes.json();
+
+        if (!similarData.results || similarData.results.length === 0) {
+            aiResults.innerHTML = `<p style="color: var(--text-muted); text-align: center;">No similar ${isShowRequest ? 'shows' : 'movies'} found. Try another title!</p>`;
+            return;
+        }
+
+        const topSimilar = similarData.results.slice(0, 5);
+        const enrichedSimilar = await Promise.all(
+            topSimilar.map(item => isShowRequest ? enrichTVShowData(item) : enrichMovieData(item))
+        );
+
+        aiResultsCache = enrichedSimilar;
+        displayChatbotMovieResults(enrichedSimilar, `Similar to "${referenceItem.title || referenceItem.name}"`, isShowRequest);
+
+    } catch (error) {
+        console.error('Error searching for similar content:', error);
+        aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sorry, I had trouble searching for similar content. Please try again!</p>';
+    }
+}
+
+function displayChatbotMovieResults(movies, mood, isShowRequest = false) {
+    aiResults.innerHTML = '';
+
+    const grid = document.createElement('div');
+    grid.className = 'results-grid';
+
+    movies.forEach(movie => {
+        const card = createUnifiedMovieCard(movie);
+        grid.appendChild(card);
+    });
+
+    aiResults.appendChild(grid);
+}
+
+function addMessageToChat(role, message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ${role}`;
+    messageDiv.innerHTML = `
+        <div class="ai-message-content">
+            <strong>${role === 'user' ? '👤 You' : '🤖 StreamFinder'}:</strong>
+            <p>${message}</p>
+        </div>
+    `;
+    aiMessages.appendChild(messageDiv);
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+}
+
+// ========================================
+// UNIFIED Movie Card Creation (UPDATED - IMDb Modal)
+// ========================================
+function createUnifiedMovieCard(movie) {
+    const div = document.createElement('div');
+    div.className = 'movie-card';
+    const isFav = favorites.some(f => f.id === movie.id);
+    const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+    const posterUrl = movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+
+    // UPDATED: Handle actors without IMDb pages
+    const castHTML = movie.cast && movie.cast.length > 0
+        ? `<div class="movie-cast">
+             <div class="cast-title">Starring</div>
+             <div class="cast-list">
+               ${movie.cast.map(actor => {
+                   if (actor.imdb_id) {
+                       return `<a href="https://www.imdb.com/name/${actor.imdb_id}/" target="_blank" class="cast-member" onclick="event.stopPropagation()">${actor.name}</a>`;
+                   } else {
+                       return `<span class="cast-member no-imdb" data-actor-name="${actor.name}">${actor.name}</span>`;
+                   }
+               }).join('')}
+             </div>
+           </div>`
+        : '';
+
+    let providersDisplay = [];
+    if (movie.platformName && movie.platformUrl) {
+        providersDisplay.push({ name: movie.platformName, url: movie.platformUrl });
+    } else {
+        providersDisplay = movie.providers || [];
+    }
+
+    const providersHTML = providersDisplay.length > 0
+        ? `<div class="movie-platforms">
+             ${providersDisplay.map(p => {
+            return `<a href="${p.url}" target="_blank" class="movie-platform streaming-link" onclick="event.stopPropagation()">${p.name}</a>`;
+        }).join('')}
+           </div>`
+        : '';
+
+    const imdbLink = movie.imdb_id
+        ? `https://www.imdb.com/title/${movie.imdb_id}/`
+        : '#';
+
+    const voteAverage = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+    div.innerHTML = `
+        <div class="movie-card-inner">
+            <div class="movie-collapsed-view">
+                <img src="${posterUrl}" class="movie-poster" alt="${movie.title} Poster">
+                <div class="movie-title-overlay">
+                    <div class="movie-title">${movie.title}</div>
+                    <div class="expand-icon"><i class="fas fa-chevron-down"></i></div>
+                </div>
+            </div>
+            
+            <div class="movie-expanded-view">
+                <div class="movie-header-expanded">
+                    <div class="movie-title-main">${movie.title}</div>
+                    ${providersHTML}
+                </div>
+                
+                <div class="movie-meta-expanded">
+                    <span class="meta-year"><i class="fas fa-calendar"></i> ${year}</span>
+                    <span class="meta-rating"><i class="fas fa-star"></i> ${voteAverage}</span>
+                </div>
+                
+                <div class="movie-overview">
+                    <p>${movie.overview || "No description available."}</p>
+                </div>
+                
+                ${castHTML}
+                
+                <div class="action-links-expanded">
+                    <button class="expanded-action-btn btn-favorite-expanded ${isFav ? 'is-active' : ''}" title="Add to watchlist">
+                        ${isFav ? '<i class="fas fa-trash-alt"></i> Remove' : '<i class="far fa-heart"></i> Watchlist'}
+                    </button>
+                    ${movie.imdb_id ? `<a href="${imdbLink}" target="_blank" class="expanded-action-btn btn-imdb-expanded" onclick="event.stopPropagation()" title="View on IMDB">
+                        <i class="fas fa-external-link-alt"></i> IMDb
+                    </a>` : ''}
+                    <button class="expanded-action-btn btn-share-expanded" data-title="${movie.title}">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+                
+                <div class="collapse-hint">
+                    <i class="fas fa-chevron-up"></i> Click to collapse
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Click to expand/collapse
+    div.addEventListener('click', (e) => {
+        if (e.target.closest('.streaming-link') || 
+            e.target.closest('.cast-member') || 
+            e.target.closest('.expanded-action-btn') ||
+            e.target.closest('a')) {
+            return;
+        }
+        div.classList.toggle('expanded');
+    });
+
+    // NEW: Handle actors without IMDb
+    div.querySelectorAll('.cast-member.no-imdb').forEach(actorEl => {
+        actorEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showIMDbModal();
+        });
+    });
+
+    // Favorite button handlers
+    div.querySelectorAll('.btn-favorite-expanded').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(movie);
+
+            const active = favorites.some(f => f.id === movie.id);
+            div.querySelectorAll('.btn-favorite-expanded').forEach(favBtnExpanded => {
+                favBtnExpanded.classList.toggle('is-active', active);
+                favBtnExpanded.innerHTML = active ? '<i class="fas fa-trash-alt"></i> Remove' : '<i class="far fa-heart"></i> Watchlist';
+            });
+        });
+    });
+
+    // Share button handler
+    div.querySelectorAll('.btn-share-expanded').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            shareMovie(movie);
+        });
+    });
+
+    return div;
+}
+
+// ========================================
+// Toast Notification Function
+// ========================================
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ?
+        '<i class="fas fa-check-circle"></i>' :
+        '<i class="fas fa-times-circle"></i>';
+
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span>${message}</span>
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// ========================================
+// Favorites Logic
+// ========================================
+function updateFavCount() {
+    favCountEl.innerText = favorites.length;
+    favCountEl.style.display = favorites.length > 0 ? 'inline' : 'none';
+
+    favCountEl.classList.add('updated');
+    setTimeout(() => {
+        favCountEl.classList.remove('updated');
+    }, 500);
+}
+updateFavCount();
+
+function toggleFavorite(movie) {
+    const idx = favorites.findIndex(f => f.id === movie.id);
+
+    let storedProviderNames = [];
+    if (movie.platformName) {
+        storedProviderNames = [movie.platformName];
+    } else if (movie.providers) {
+        storedProviderNames = movie.providers.map(p => p.name);
+    }
+
+    if (idx > -1) {
+        favorites.splice(idx, 1);
+        showToast(`Removed "${movie.title}" from Watchlist`, 'removed');
+    } else {
+        favorites.push({
+            id: movie.id,
+            title: movie.title,
+            release_date: movie.release_date,
+            vote_average: movie.vote_average,
+            poster_path: movie.poster_path,
+            overview: movie.overview,
+            genre_ids: movie.genre_ids,
+            providers: storedProviderNames,
+            imdb_id: movie.imdb_id
+        });
+        showToast(`Added "${movie.title}" to Watchlist!`, 'success');
+    }
+    localStorage.setItem('streamFinderFavs', JSON.stringify(favorites));
+    updateFavCount();
+    if (viewFavs.classList.contains('active')) renderCategorizedFavorites();
+}
+
+function renderCategorizedFavorites() {
+    const container = document.getElementById('favorites-container');
+
+    container.innerHTML = "";
+
+    if (favorites.length === 0) {
+        container.innerHTML = '<div class="empty-state">Your watchlist is empty. Go find some great content!</div>';
+        return;
+    }
+
+    const groups = {};
+
+    favorites.forEach(movie => {
+        const gId = (movie.genre_ids && movie.genre_ids.length > 0) ? movie.genre_ids[0] : 'other';
+        if (!groups[gId]) groups[gId] = [];
+        groups[gId].push(movie);
+    });
+
+    for (const [gId, movies] of Object.entries(groups)) {
+        const section = document.createElement('div');
+        section.className = 'genre-section';
+
+        const genreName = GENRE_NAMES[gId] || "Uncategorized";
+
+        section.innerHTML = `<h3 class="genre-title">${genreName} (${movies.length})</h3>`;
+
+        const grid = document.createElement('div');
+        grid.className = 'favorites-grid';
+
+        const promises = movies.map(m => {
+            if (m.providers && Array.isArray(m.providers)) {
+                m.providers = m.providers.map(item => {
+                    if (typeof item === 'object' && item.name) {
+                        return item;
+                    }
+                    const name = String(item);
+                    const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                    return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
+                });
+            }
+            return enrichMovieData(m);
+        });
+
+        Promise.all(promises).then(enrichedMovies => {
+            enrichedMovies.forEach(m => {
+                grid.appendChild(createUnifiedMovieCard(m));
+            });
+        }).catch(err => {
+            console.error("Error enriching watchlist movies:", err);
+            movies.forEach(m => {
+                if (m.providers && Array.isArray(m.providers)) {
+                    m.providers = m.providers.map(item => {
+                        if (typeof item === 'object' && item.name) {
+                            return item;
+                        }
+                        const name = String(item);
+                        const platformId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                        return { name, url: platformId ? PLATFORM_URLS[platformId] : '#' };
+                    });
+                }
+                grid.appendChild(createUnifiedMovieCard(m));
+            });
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+    }
+
+    setupWatchlistPlatformSort();
+}
+
+function setupWatchlistPlatformSort() {
+    const sortDropdown = document.getElementById('watchlist-sort-platform');
+    if (!sortDropdown) return;
+
+    let platformOptions = '<option value="default">All Platforms</option>';
+    Object.entries(PLATFORM_NAMES).forEach(([id, name]) => {
+        platformOptions += `<option value="platform-${id}">${name}</option>`;
+    });
+
+    sortDropdown.innerHTML = platformOptions;
+
+    sortDropdown.addEventListener('change', (e) => {
+        const sortBy = e.target.value;
+        const container = document.getElementById('favorites-container');
+
+        if (sortBy === 'default') {
+            renderCategorizedFavorites();
+        } else if (sortBy.startsWith('platform-')) {
+            const platformId = sortBy.split('-')[1];
+            const platformName = PLATFORM_NAMES[platformId];
+
+            const filtered = favorites.filter(movie => {
+                if (!movie.providers || movie.providers.length === 0) return false;
+                return movie.providers.some(provider => {
+                    if (typeof provider === 'object' && provider.name) {
+                        return provider.name === platformName;
+                    }
+                    return String(provider) === platformName;
+                });
+            });
+
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">No movies found on ${platformName}.</div>`;
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'favorites-grid';
+
+            const promises = filtered.map(m => {
+                if (m.providers && Array.isArray(m.providers)) {
+                    m.providers = m.providers.map(item => {
+                        if (typeof item === 'object' && item.name) {
+                            return item;
+                        }
+                        const name = String(item);
+                        const pId = Object.keys(PLATFORM_NAMES).find(key => PLATFORM_NAMES[key] === name);
+                        return { name, url: pId ? PLATFORM_URLS[pId] : '#' };
+                    });
+                }
+                return enrichMovieData(m);
+            });
+
+            Promise.all(promises).then(enrichedMovies => {
+                enrichedMovies.forEach(m => {
+                    grid.appendChild(createUnifiedMovieCard(m));
+                });
+            }).catch(err => {
+                console.error("Error enriching filtered watchlist movies:", err);
+                filtered.forEach(m => {
+                    grid.appendChild(createUnifiedMovieCard(m));
+                });
+            });
+
+            container.appendChild(grid);
+        }
+    });
+}
+
+// ========================================
+// Back-to-Top Button Handler
+// ========================================
+const backToTopBtn = document.getElementById('back-to-top-btn-fav');
+const viewFavsContainer = document.getElementById('view-favorites');
+
+if (backToTopBtn && viewFavsContainer) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.style.display = 'block';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+// ========================================
+// Initialization
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+    initializeMovieFact();
+    initializeSelectAllButton();
+});
+
+pushHistory(0);
