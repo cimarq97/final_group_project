@@ -84,7 +84,7 @@ const RUNTIME_CONFIG = {
 const PLATFORM_NAMES = {
     8: "Netflix", 15: "Hulu", 1899: "Max", 337: "Disney+", 9: "Prime Video",
     531: "Paramount+", 384: "MGM+", 257: "Fubo TV", 350: "Apple TV+",
-    386: "Peacock", 1796: "Crunchyroll", 283: "Crackle"
+    386: "Peacock", 1796: "Crunchyroll"
 };
 
 // NEW: Mapping for platform ID to the official website URL
@@ -99,8 +99,7 @@ const PLATFORM_URLS = {
     257: "https://www.fubo.tv/",
     350: "https://tv.apple.com/",
     386: "https://www.peacocktv.com/",
-    1796: "https://www.crunchyroll.com/",
-    283: "https://www.crackle.com/"
+    1796: "https://www.crunchyroll.com/"
 };
 
 // UPDATED: Mapping for platform ID to external logo URLs (Kept for Movie Cards)
@@ -115,8 +114,7 @@ const PLATFORM_LOGOS = {
     257: "https://images.tmdb.org/t/p/original/i53Q9T8k13XmC9Q6c4kI6G7HhFk.png", // Fubo TV
     350: "https://images.tmdb.org/t/p/original/i6oN9iE0i5x3n1c00i5Lq8uHjK4.png", // Apple TV+
     386: "https://images.tmdb.org/t/p/original/mX7YtU0s07QjY5k7S1bJbQc3k1i.png", // Peacock
-    1796: "https://images.tmdb.org/t/p/original/5jE6Y6qY6GKGtC8pLwQxR4O4Z9Z.png", // Crunchyroll
-    283: "https://images.tmdb.org/t/p/original/6Jt5v5f2G3cE7uI2e70xYwR711C.png"  // Crackle
+    1796: "https://images.tmdb.org/t/p/original/5jE6Y6qY6GKGtC8pLwQxR4O4Z9Z.png"  // Crunchyroll
 };
 
 const GENRE_NAMES = {
@@ -848,7 +846,7 @@ function displayMovies(movies, container) {
             loadingBarContainer.style.display = 'none';
         }
         
-        // Group by platform for consistent layout
+        // Group by platform (like watchlist groups by genre)
         const groups = {};
         enrichedMovies.forEach((movie) => {
             const rawProviders = movie.providers || [];
@@ -858,23 +856,24 @@ function displayMovies(movies, container) {
                 const platformKey = rawProviders[0].name;
                 
                 if (!groups[platformKey]) {
-                    groups[platformKey] = { name: platformKey, movies: [] };
+                    groups[platformKey] = [];
                 }
                 
-                groups[platformKey].movies.push(movie);
+                groups[platformKey].push(movie);
             }
         });
         
-        // Render each platform group with horizontal scroll
-        for (const group of Object.values(groups)) {
+        // Render each platform group with horizontal scroll (same layout as genre sections)
+        for (const [platformName, movies] of Object.entries(groups)) {
             const section = document.createElement('div');
-            section.className = 'platform-section';
-            section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
-            
+            section.className = 'genre-section';  // Reuse genre-section styling
+
+            section.innerHTML = `<h3 class="genre-title">${platformName} (${movies.length})</h3>`;  // Reuse genre-title styling
+
             const grid = document.createElement('div');
             grid.className = 'favorites-grid';
             
-            group.movies.forEach(movie => {
+            movies.forEach(movie => {
                 // Use createChatbotCard for consistent appearance
                 grid.appendChild(createChatbotCard(movie));
             });
@@ -971,47 +970,34 @@ async function displaySurpriseMovies(movies, container) {
         loadingBarContainer.style.display = 'none';
     }
 
-    // Group by platform
+    // Group by platform (like watchlist groups by genre)
     const groups = {};
     enrichedMovies.forEach((movie) => {
         const rawProviders = movie.providers || [];
 
         if (rawProviders.length > 0) {
-            // Find the first provider object whose name is in the user's selected list (by name)
-            const selectedProvider = rawProviders.find(p =>
-                selections.platforms.some(id => PLATFORM_NAMES[id] === p.name)
-            );
+            // Group by first provider
+            const platformKey = rawProviders[0].name;
 
-            if (selectedProvider) {
-                const platformKey = selectedProvider.name;
-
-                if (!groups[platformKey]) {
-                    groups[platformKey] = { name: platformKey, movies: [] };
-                }
-
-                // Attach the selected provider name/URL object to the movie for card creation
-                movie.platformName = selectedProvider.name;
-                movie.platformUrl = selectedProvider.url;
-                groups[platformKey].movies.push(movie);
+            if (!groups[platformKey]) {
+                groups[platformKey] = [];
             }
+
+            groups[platformKey].push(movie);
         }
     });
 
-    if (Object.keys(groups).length === 0) {
-        container.innerHTML = '<div class="empty-state">Could not verify streaming providers for the results.</div>';
-        return;
-    }
-
-    // Render each platform group with horizontal scroll
-    for (const group of Object.values(groups)) {
+    // Render each platform group with horizontal scroll (same layout as genre sections)
+    for (const [platformName, movies] of Object.entries(groups)) {
         const section = document.createElement('div');
-        section.className = 'platform-section';
-        section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+        section.className = 'genre-section';  // Reuse genre-section styling
+
+        section.innerHTML = `<h3 class="genre-title">${platformName} (${movies.length})</h3>`;  // Reuse genre-title styling
 
         const grid = document.createElement('div');
         grid.className = 'favorites-grid';
 
-        group.movies.forEach(m => grid.appendChild(createChatbotCard(m)));
+        movies.forEach(m => grid.appendChild(createChatbotCard(m)));
         section.appendChild(grid);
         container.appendChild(section);
     }
@@ -1371,6 +1357,11 @@ async function searchMoviesByRules(genreIds, mood) {
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/movie`);
         url.searchParams.append('with_genres', genreIds.join(','));
+        
+        // Add watch provider filtering - only show movies on listed streaming platforms
+        const platformIds = Object.keys(PLATFORM_NAMES).join('|');
+        url.searchParams.append('with_watch_providers', platformIds);
+        url.searchParams.append('watch_region', 'US');
 
         // Use vote_average sorting for top-rated films, popularity for others
         if (mood === 'Top-Rated Films') {
@@ -1390,7 +1381,7 @@ async function searchMoviesByRules(genreIds, mood) {
         const data = await res.json();
 
         if (!data.results || data.results.length === 0) {
-            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No movies found for that mood. Try a different request!</p>';
+            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No movies found for that mood on our streaming platforms. Try a different request!</p>';
             return;
         }
 
@@ -1416,6 +1407,11 @@ async function searchTVShowsByRules(genreIds, mood) {
     try {
         const url = new URL(`${TMDB_BASE_URL}/discover/tv`);
         url.searchParams.append('with_genres', genreIds.join(','));
+        
+        // Add watch provider filtering - only show shows on listed streaming platforms
+        const platformIds = Object.keys(PLATFORM_NAMES).join('|');
+        url.searchParams.append('with_watch_providers', platformIds);
+        url.searchParams.append('watch_region', 'US');
 
         // Use vote_average sorting for top-rated films, popularity for others
         if (mood === 'Top-Rated Films') {
@@ -1435,7 +1431,7 @@ async function searchTVShowsByRules(genreIds, mood) {
         const data = await res.json();
 
         if (!data.results || data.results.length === 0) {
-            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No TV shows found for that mood. Try a different request!</p>';
+            aiResults.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No TV shows found for that mood on our streaming platforms. Try a different request!</p>';
             return;
         }
 
@@ -1846,7 +1842,7 @@ function createMovieCard(movie) {
             if (imdbId) {
                 window.open(`https://www.imdb.com/name/${imdbId}/`, '_blank');
             } else {
-                alert(`IMDb ID not found for ${actorEl.textContent}`);
+                showToast(`IMDb page not available for ${actorEl.textContent}`, 'removed');
             }
         });
     });
