@@ -1,3 +1,9 @@
+/*
+    DISCLAIMER: This project was developed with the assistance of AI (GitHub Copilot).
+    The AI was used to help with code suggestions, refactoring, and implementation of features.
+    All code has been reviewed and modified by the development team.
+*/
+
 // ========================================
 // API & Config
 // ========================================
