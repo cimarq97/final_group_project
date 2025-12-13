@@ -45,12 +45,12 @@ const CHATBOT_RULES = {
 };
 
 const MOOD_CONFIG = {
-    cozy: { genres: [35, 10749], sort: "popularity.desc" },
-    excited: { genres: [28, 53, 878], sort: "popularity.desc" },
-    sad: { genres: [18, 10752], sort: "vote_average.desc", minVotes: 100 },
-    tired: { genres: [35, 10751], sort: "popularity.desc", minVotes: 50 },
-    curious: { genres: [99, 9648, 18], sort: "vote_average.desc", minVotes: 50 },
-    topRated: { genres: [28, 35, 18, 878, 53, 27, 10749], sort: "vote_average.desc", minVotes: 200 }
+    cozy: { genres: [35, 10749, 18], sort: "popularity.desc", minVotes: 50 },
+    excited: { genres: [28, 53, 878], sort: "popularity.desc", minVotes: 50 },
+    sad: { genres: [18, 10752, 27], sort: "vote_average.desc", minVotes: 100 },
+    tired: { genres: [35, 10751, 18], sort: "popularity.desc", minVotes: 50 },
+    curious: { genres: [99, 9648, 18, 36, 99, 14], sort: "vote_average.desc", minVotes: 50 },
+    topRated: { genres: [28, 35, 18, 878, 53, 27, 10749, 12, 14], sort: "vote_average.desc", minVotes: 150 }
 };
 
 const RUNTIME_CONFIG = {
