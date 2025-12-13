@@ -156,9 +156,9 @@ Acknowledgements
 - List resources, libraries, tutorials, or teammates that helped produce this project.
 
 Contact
-- Project maintainer: Your Name / Team
+- Project maintainer: Your Camille Marquez / Jordan Stahl
 - GitHub: https://github.com/cimarq97
-- Email: your.email@example.com
+- Email: cm27708@usc.edu and jsstahl@usc.edu
 
 Notes / To-do
 - Replace placeholder sections above (tech, commands, env vars, endpoints) with concrete details for this repo.
