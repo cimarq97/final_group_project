@@ -717,8 +717,8 @@ function displayMovies(movies, container) {
         
         for (const group of Object.values(groups)) {
             const section = document.createElement('div');
-            section.className = 'platform-section';
-            section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+            section.className = 'genre-section';
+            section.innerHTML = `<h3 class="genre-title">${group.name}</h3>`;
             
             const grid = document.createElement('div');
             grid.className = 'favorites-grid';
@@ -816,8 +816,8 @@ async function displaySurpriseMovies(movies, container) {
 
     for (const group of Object.values(groups)) {
         const section = document.createElement('div');
-        section.className = 'platform-section';
-        section.innerHTML = `<h3 class="platform-title">${group.name} Picks (${group.movies.length})</h3>`;
+        section.className = 'genre-section';
+        section.innerHTML = `<h3 class="genre-title">${group.name} (${group.movies.length})</h3>`;
 
         const grid = document.createElement('div');
         grid.className = 'favorites-grid';
