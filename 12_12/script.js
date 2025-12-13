@@ -820,9 +820,19 @@ function renderResultsSummary(isSurpriseMode, selectedGenreNames) {
 }
 
 function displayMovies(movies, container) {
+    // Show loading bar
+    const loadingBarContainer = document.getElementById('loading-bar-container');
+    if (loadingBarContainer) {
+        loadingBarContainer.style.display = 'block';
+    }
+    
     container.innerHTML = "";
     if (!movies.length) {
         container.innerHTML = '<div class="empty-state">No matches found. Try different filters.</div>';
+        // Hide loading bar
+        if (loadingBarContainer) {
+            loadingBarContainer.style.display = 'none';
+        }
         return;
     }
 
@@ -833,6 +843,11 @@ function displayMovies(movies, container) {
     const promises = shuffled.map(m => enrichMovieData(m));
     
     Promise.all(promises).then(enrichedMovies => {
+        // Hide loading bar once data is ready
+        if (loadingBarContainer) {
+            loadingBarContainer.style.display = 'none';
+        }
+        
         // Group by platform for consistent layout
         const groups = {};
         enrichedMovies.forEach((movie) => {
@@ -871,6 +886,11 @@ function displayMovies(movies, container) {
     }).catch(err => {
         console.error("Error enriching movies:", err);
         container.innerHTML = '<div class="empty-state">Error loading movie details.</div>';
+        // Hide loading bar on error
+        const loadingBarContainer = document.getElementById('loading-bar-container');
+        if (loadingBarContainer) {
+            loadingBarContainer.style.display = 'none';
+        }
     });
 }
 
@@ -927,14 +947,29 @@ async function enrichMovieData(movie) {
 // Surprise Me - Categorization by Platform & Global Share (UPDATED for new provider structure)
 // ========================================
 async function displaySurpriseMovies(movies, container) {
+    // Show loading bar
+    const loadingBarContainer = document.getElementById('loading-bar-container');
+    if (loadingBarContainer) {
+        loadingBarContainer.style.display = 'block';
+    }
+    
     container.innerHTML = "";
     if (!movies.length) {
         container.innerHTML = '<div class="empty-state">No surprises found on your selected platforms.</div>';
+        // Hide loading bar
+        if (loadingBarContainer) {
+            loadingBarContainer.style.display = 'none';
+        }
         return;
     }
 
     const promises = movies.sort(() => 0.5 - Math.random()).slice(0, 15).map(m => enrichMovieData(m));
     const enrichedMovies = await Promise.all(promises);
+
+    // Hide loading bar once data is enriched
+    if (loadingBarContainer) {
+        loadingBarContainer.style.display = 'none';
+    }
 
     // Group by platform
     const groups = {};
